@@ -2,7 +2,7 @@ package com.jeontongju.authentication.entity;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
-import com.jeontongju.authentication.enums.MemberRole;
+import com.jeontongju.authentication.enums.MemberRoleEnum;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -33,21 +33,24 @@ public class Member {
   @Column(name = "member_id")
   private Long memberId;
 
-  @Column(name = "member_role")
-  private MemberRole memberRole;
+  @Column(name = "member_role", nullable = false)
+  private MemberRoleEnum memberRoleEnum;
 
-  @Column(name = "username")
+  @Column(name = "username", nullable = false)
   private String username;
 
-  @Column(name = "password")
+  @Column(name = "password", nullable = false)
   private String password;
 
-  @Column(name = "is_first_login")
-  private Boolean isFirstLogin;
+  @Column(name = "is_first_login", nullable = false)
+  @Builder.Default
+  private Boolean isFirstLogin = true;
 
-  @Column(name = "is_adult")
-  private Boolean isAdult;
+  @Column(name = "is_adult", nullable = false)
+  @Builder.Default
+  private Boolean isAdult = false;
 
-  @Column(name = "is_deleted")
-  private Boolean isDeleted;
+  @Column(name = "is_deleted", nullable = false)
+  @Builder.Default
+  private Boolean isDeleted = false;
 }
