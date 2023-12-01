@@ -1,6 +1,7 @@
 package com.jeontongju.authentication.security;
 
 import com.jeontongju.authentication.entity.Member;
+import java.util.ArrayList;
 import java.util.Collection;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
@@ -17,7 +18,16 @@ public class MemberDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        Collection<GrantedAuthority> collect = new ArrayList<>();
+        collect.add(
+            new GrantedAuthority() {
+                @Override
+                public String getAuthority() {
+                    return member.getMemberRoleEnum().toString();
+                }
+            }
+        );
+        return collect;
     }
 
     @Override

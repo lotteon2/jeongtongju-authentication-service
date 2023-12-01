@@ -18,7 +18,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
     public CustomAuthenticationProvider(MemberDetailsService memberDetailsService) {
         this.memberDetailsService = memberDetailsService;
-        this.passwordEncoder = new BCryptPasswordEncoder();;
+        this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
     @Override
@@ -30,14 +30,14 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
         MemberDetails memberDetails = memberDetailsService.loadUserByUsername(username);
 
-        if (passwordEncoder.matches(password, memberDetails.getPassword())) {
-            return new UsernamePasswordAuthenticationToken(
-                username,
-                password,
-                memberDetails.getAuthorities());
-        } else {
+        if (!passwordEncoder.matches(password, memberDetails.getPassword())) {
             throw new BadCredentialsException("인증에 실패했습니다.");
         }
+
+        return new UsernamePasswordAuthenticationToken(
+            username,
+            password,
+            memberDetails.getAuthorities());
     }
 
     @Override
