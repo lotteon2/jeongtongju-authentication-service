@@ -5,6 +5,8 @@ import static javax.persistence.GenerationType.IDENTITY;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -33,6 +35,7 @@ public class Member {
   @Column(name = "member_id")
   private Long memberId;
 
+  @Enumerated(EnumType.STRING)
   @Column(name = "member_role", nullable = false)
   private MemberRoleEnum memberRoleEnum;
 

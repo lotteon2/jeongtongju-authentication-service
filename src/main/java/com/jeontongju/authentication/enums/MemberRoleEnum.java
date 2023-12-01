@@ -1,9 +1,9 @@
 package com.jeontongju.authentication.enums;
 
 public enum MemberRoleEnum {
-    ROLE_CONSUMER("ROLE_CONSUMER"),
-    ROLE_SELLER("ROLE_SELLER"),
-    ROLE_ADMIN("ROLE_ADMIN");
+    ROLE_CONSUMER("consumer"),
+    ROLE_SELLER("seller"),
+    ROLE_ADMIN("admin");
 
     private final String value;
 
