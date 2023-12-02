@@ -47,6 +47,7 @@ public class JwtTokenProvider implements InitializingBean {
         .setSubject(authentication.getName())
         .claim("memberId", memberDetails.getMember().getMemberId().toString())
         .claim("memberRole", authorities)
+        .claim("username", memberDetails.getUsername())
         .signWith(key, SignatureAlgorithm.HS512)
         .setExpiration(validity)
         .compact();
