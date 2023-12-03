@@ -1,10 +1,10 @@
 package com.jeontongju.authentication.service;
 
-import com.jeontongju.authentication.dto.ConsumerInfoForCreateRequestDto;
-import com.jeontongju.authentication.dto.ConsumerInfoForSignUpRequestDto;
-import com.jeontongju.authentication.dto.ImpAuthInfoResponse;
-import com.jeontongju.authentication.dto.SellerInfoForCreateRequestDto;
-import com.jeontongju.authentication.dto.SellerInfoForSignUpRequestDto;
+import com.jeontongju.authentication.dto.request.ConsumerInfoForCreateRequestDto;
+import com.jeontongju.authentication.dto.request.ConsumerInfoForSignUpRequestDto;
+import com.jeontongju.authentication.dto.response.ImpAuthInfoResponse;
+import com.jeontongju.authentication.dto.request.SellerInfoForCreateRequestDto;
+import com.jeontongju.authentication.dto.request.SellerInfoForSignUpRequestDto;
 import com.jeontongju.authentication.entity.Member;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
 import com.jeontongju.authentication.repository.MemberRepository;

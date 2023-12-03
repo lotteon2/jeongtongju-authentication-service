@@ -1,7 +1,7 @@
 package com.jeontongju.authentication.controller;
 
-import com.jeontongju.authentication.dto.ConsumerInfoForSignUpRequestDto;
-import com.jeontongju.authentication.dto.SellerInfoForSignUpRequestDto;
+import com.jeontongju.authentication.dto.request.ConsumerInfoForSignUpRequestDto;
+import com.jeontongju.authentication.dto.request.SellerInfoForSignUpRequestDto;
 import com.jeontongju.authentication.dto.SuccessFormat;
 import com.jeontongju.authentication.service.MemberService;
 import javax.validation.Valid;

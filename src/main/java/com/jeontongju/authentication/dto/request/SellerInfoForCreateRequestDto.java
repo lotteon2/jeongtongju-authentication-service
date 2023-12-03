@@ -1,5 +1,6 @@
-package com.jeontongju.authentication.dto;
+package com.jeontongju.authentication.dto.request;
 
+import com.jeontongju.authentication.dto.response.ImpAuthInfoResponse;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

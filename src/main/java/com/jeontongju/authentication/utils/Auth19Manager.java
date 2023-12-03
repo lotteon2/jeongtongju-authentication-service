@@ -1,7 +1,7 @@
 package com.jeontongju.authentication.utils;
 
-import com.jeontongju.authentication.dto.ImpAuthInfoResponse;
-import com.jeontongju.authentication.dto.ImpTokenResponse;
+import com.jeontongju.authentication.dto.response.ImpAuthInfoResponse;
+import com.jeontongju.authentication.dto.response.ImpTokenResponse;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.time.LocalDate;

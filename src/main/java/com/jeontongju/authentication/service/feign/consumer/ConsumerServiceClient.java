@@ -1,6 +1,6 @@
 package com.jeontongju.authentication.service.feign.consumer;
 
-import com.jeontongju.authentication.dto.ConsumerInfoForCreateRequestDto;
+import com.jeontongju.authentication.dto.request.ConsumerInfoForCreateRequestDto;
 import com.jeontongju.authentication.dto.SuccessFeignFormat;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;

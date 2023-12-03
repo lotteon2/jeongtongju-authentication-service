@@ -1,4 +1,4 @@
-package com.jeontongju.authentication.dto;
+package com.jeontongju.authentication.dto.request;
 
 import javax.validation.constraints.NotNull;
 import lombok.AccessLevel;

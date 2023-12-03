@@ -1,6 +1,6 @@
 package com.jeontongju.authentication.service.feign.seller;
 
-import com.jeontongju.authentication.dto.SellerInfoForCreateRequestDto;
+import com.jeontongju.authentication.dto.request.SellerInfoForCreateRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
