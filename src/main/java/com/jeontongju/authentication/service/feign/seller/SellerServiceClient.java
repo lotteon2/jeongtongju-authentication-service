@@ -1,7 +1,7 @@
 package com.jeontongju.authentication.service.feign.seller;
 
-import com.jeontongju.authentication.dto.request.SellerInfoForCreateRequestDto;
 import com.jeontongju.authentication.dto.SuccessFeignFormat;
+import com.jeontongju.authentication.dto.request.SellerInfoForCreateRequestDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 
