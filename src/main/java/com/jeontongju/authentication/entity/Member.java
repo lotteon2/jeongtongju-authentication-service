@@ -59,12 +59,12 @@ public class Member {
   @Builder.Default
   private Boolean isDeleted = false;
 
-  public static Member register(String email, String password) {
+  public static Member register(String email, String password, MemberRoleEnum role) {
     PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     return Member.builder()
         .username(email)
         .password(passwordEncoder.encode(password))
-        .memberRoleEnum(MemberRoleEnum.ROLE_CONSUMER)
+        .memberRoleEnum(role)
         .build();
   }
 }

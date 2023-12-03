@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @Getter
-public class ConsumerInfoForSignUpForRequestDto {
+public class ConsumerInfoForSignUpRequestDto {
 
   @NotNull
   @Email(message = "회원가입 형식에 맞게 입력해주세요")
