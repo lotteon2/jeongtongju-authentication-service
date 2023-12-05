@@ -8,19 +8,31 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import org.json.JSONException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-public interface Auth19Manager {
-  String GET_ACCESS_TOKEN_URL = "https://api.iamport.kr/users/getToken";
-  String GET_AUTH_INFO_PREFIX_URL = "https://api.iamport.kr/certifications/";
+public class Auth19Manager {
+  private static final String GET_ACCESS_TOKEN_URL = "https://api.iamport.kr/users/getToken";
+  private static final String GET_AUTH_INFO_PREFIX_URL = "https://api.iamport.kr/certifications/";
 
-  static ImpAuthInfoResponse authenticate19(String impUid, String impKey, String impSecret)
+  private static String impKey;
+
+  private static String impSecret;
+
+  public Auth19Manager(Environment env) {
+    impKey = env.getProperty("store.imp.key");
+    impSecret = env.getProperty("store.imp.secret");
+  }
+
+  public static ImpAuthInfoResponse authenticate19(String impUid)
       throws IOException, JSONException {
 
     HttpEntity<Map> requestEntity;

@@ -36,16 +36,6 @@ public class MemberService {
   private final MemberRepository memberRepository;
   private final ConsumerClientService consumerClientService;
   private final SellerClientService sellerClientService;
-  private final JavaMailSender mailSender;
-
-  @Value("${store.imp.key}")
-  private String impKey;
-
-  @Value("${store.imp.secret}")
-  private String impSecret;
-
-  @Value("${store.email.from}")
-  private String from;
 
   public MailAuthCodeResponseDto sendEmailAuthForSignUp(EmailInfoForAuthRequestDto authRequestDto)
       throws MessagingException, UnsupportedEncodingException {
@@ -56,7 +46,7 @@ public class MemberService {
     }
 
     MailInfoDto mailInfoDto =
-        MailManager.sendAuthEmail(mailSender, from, authRequestDto.getEmail());
+        MailManager.sendAuthEmail(authRequestDto.getEmail());
 
     return MailAuthCodeResponseDto.builder().authCode(mailInfoDto.getValidCode()).build();
   }
@@ -81,7 +71,7 @@ public class MemberService {
     try {
       // 성인 인증
       ImpAuthInfoResponse impAuthInfoResponse =
-          Auth19Manager.authenticate19(signUpRequestDto.getImpUid(), impKey, impSecret);
+          Auth19Manager.authenticate19(signUpRequestDto.getImpUid());
 
       Member savedSeller =
           memberRepository.save(
