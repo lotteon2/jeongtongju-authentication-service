@@ -40,11 +40,7 @@ public class SecurityConfig {
     http.authorizeRequests(
         authz ->
             authz
-                .antMatchers("/api/sign-up/email/auth")
-                .permitAll()
-                .antMatchers("/api/consumers/sign-up")
-                .permitAll()
-                .antMatchers("/api/sellers/sign-up")
+                .antMatchers("/api/**/sign-up/**")
                 .permitAll()
                 .antMatchers("/api/sign-in/**")
                 .permitAll()

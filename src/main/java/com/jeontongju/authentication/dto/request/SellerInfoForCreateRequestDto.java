@@ -1,14 +1,13 @@
 package com.jeontongju.authentication.dto.request;
 
 import com.jeontongju.authentication.dto.response.ImpAuthInfo;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @Getter
 public class SellerInfoForCreateRequestDto {
