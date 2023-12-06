@@ -1,22 +1,20 @@
 package com.jeontongju.authentication.utils;
 
 import com.jeontongju.authentication.dto.MailInfoDto;
-import org.springframework.core.env.Environment;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.stereotype.Component;
-
+import java.io.UnsupportedEncodingException;
+import java.util.Random;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMessage.RecipientType;
-import java.io.UnsupportedEncodingException;
-import java.util.Random;
+import org.springframework.core.env.Environment;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Component;
 
 @Component
 public class MailManager {
 
   private static String from;
   private static JavaMailSender mailSender;
-
   private static final Integer VALID_CODE_LENGTH = 8;
 
   public MailManager(Environment env, JavaMailSender mailSender) {

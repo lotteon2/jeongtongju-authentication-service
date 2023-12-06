@@ -6,7 +6,7 @@ import com.jeontongju.authentication.dto.request.ConsumerInfoForSignUpRequestDto
 import com.jeontongju.authentication.dto.request.EmailInfoForAuthRequestDto;
 import com.jeontongju.authentication.dto.request.SellerInfoForCreateRequestDto;
 import com.jeontongju.authentication.dto.request.SellerInfoForSignUpRequestDto;
-import com.jeontongju.authentication.dto.response.ImpAuthInfoResponse;
+import com.jeontongju.authentication.dto.response.ImpAuthInfo;
 import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
 import com.jeontongju.authentication.entity.Member;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
@@ -23,8 +23,6 @@ import javax.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,7 +68,7 @@ public class MemberService {
 
     try {
       // 성인 인증
-      ImpAuthInfoResponse impAuthInfoResponse =
+      ImpAuthInfo impAuthInfo =
           Auth19Manager.authenticate19(signUpRequestDto.getImpUid());
 
       Member savedSeller =
@@ -82,7 +80,7 @@ public class MemberService {
 
       sellerClientService.createSellerForSignup(
           SellerInfoForCreateRequestDto.toDto(
-              savedSeller.getMemberId(), signUpRequestDto, impAuthInfoResponse));
+              savedSeller.getMemberId(), signUpRequestDto, impAuthInfo));
 
     } catch (IOException e) {
       throw new RuntimeException(e);

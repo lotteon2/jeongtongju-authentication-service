@@ -1,6 +1,6 @@
 package com.jeontongju.authentication.dto.request;
 
-import com.jeontongju.authentication.dto.response.ImpAuthInfoResponse;
+import com.jeontongju.authentication.dto.response.ImpAuthInfo;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,7 +25,7 @@ public class SellerInfoForCreateRequestDto {
   public static SellerInfoForCreateRequestDto toDto(
       Long memberId,
       SellerInfoForSignUpRequestDto signUpRequestDto,
-      ImpAuthInfoResponse impAuthInfoResponse) {
+      ImpAuthInfo impAuthInfo) {
     return SellerInfoForCreateRequestDto.builder()
         .memberId(memberId)
         .email(signUpRequestDto.getEmail())
@@ -33,8 +33,8 @@ public class SellerInfoForCreateRequestDto {
         .storeDescription(signUpRequestDto.getStoreDescription())
         .storeImageUrl(signUpRequestDto.getStoreImageUrl())
         .storePhoneNumber(signUpRequestDto.getStorePhoneNumber())
-        .businessmanName(impAuthInfoResponse.getName())
-        .businessmanPhoneNumber(impAuthInfoResponse.getPhone())
+        .businessmanName(impAuthInfo.getName())
+        .businessmanPhoneNumber(impAuthInfo.getPhone())
         .build();
   }
 }

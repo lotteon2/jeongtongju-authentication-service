@@ -35,8 +35,7 @@ public class SecurityConfig {
         .disable()
         .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(STATELESS));
 
-    http.addFilter(corsFilter)
-        .apply(new MyCustomDsl());
+    http.addFilter(corsFilter).apply(new MyCustomDsl());
 
     http.authorizeRequests(
         authz ->
@@ -45,11 +44,13 @@ public class SecurityConfig {
                 .permitAll()
                 .antMatchers("/api/consumers/sign-up")
                 .permitAll()
+                .antMatchers("/api/sellers/sign-up")
+                .permitAll()
                 .antMatchers("/api/sign-in/**")
                 .permitAll()
                 .anyRequest()
                 .authenticated());
-    
+
     return http.build();
   }
 
@@ -57,14 +58,14 @@ public class SecurityConfig {
     @Override
     public void configure(HttpSecurity http) throws Exception {
 
-      AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
+      AuthenticationManager authenticationManager =
+          http.getSharedObject(AuthenticationManager.class);
       JwtAuthenticationFilter jwtAuthenticationFilter =
           new JwtAuthenticationFilter(authenticationManager, jwtTokenProvider);
 
       // UsernamePasswordAuthenticationFilter 직전
       http.addFilterAfter(jwtAuthenticationFilter, LogoutFilter.class)
-              .authenticationProvider(jwtAuthenticationProvider);
-
+          .authenticationProvider(jwtAuthenticationProvider);
     }
   }
 }

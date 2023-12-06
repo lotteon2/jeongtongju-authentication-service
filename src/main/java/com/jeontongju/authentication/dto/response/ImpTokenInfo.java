@@ -7,8 +7,8 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class ImpTokenResponse {
-  private Integer code;
-  private String message;
-  private ImpTokenInfo response;
+public class ImpTokenInfo {
+  private String access_token;
+  private Long now;
+  private Long expired_at;
 }

@@ -7,8 +7,8 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class ImpTokenResponse {
+public class ImpAuthResponse {
   private Integer code;
   private String message;
-  private ImpTokenInfo response;
+  private ImpAuthInfo response;
 }
