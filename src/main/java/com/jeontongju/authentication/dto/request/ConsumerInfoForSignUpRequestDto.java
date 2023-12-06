@@ -1,4 +1,4 @@
-package com.jeontongju.authentication.dto;
+package com.jeontongju.authentication.dto.request;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
@@ -13,14 +13,20 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @Getter
-public class MemberInfoForSignInRequestDto {
+public class ConsumerInfoForSignUpRequestDto {
 
-  @NotNull @Email private String email;
+  @NotNull
+  @Email(message = "회원가입 형식에 맞게 입력해주세요")
+  private String email;
 
   @NotNull
   @Pattern(
       regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[~!@#$%^&*()+|=])[A-Za-z\\d~!@#$%^&*()+|=]{8,16}$",
-      message = "사용자 이메일 또는 비밀번호 형식이 잘못되었습니다.")
-  @Size(min = 8, max = 16, message = "사용자 이메일 또는 비밀번호 형식이 잘못되었습니다.")
+      message = "회원가입 형식에 맞게 입력해주세요")
+  @Size(min = 8, max = 16, message = "회원가입 형식에 맞게 입력해주세요")
   private String password;
+
+  @NotNull
+  @Size(max = 10, message = "회원가입 형식에 맞게 입력해주세요")
+  private String name;
 }

@@ -1,7 +1,7 @@
 package com.jeontongju.authentication.security.jwt.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jeontongju.authentication.dto.MemberInfoForSignInRequestDto;
+import com.jeontongju.authentication.dto.request.MemberInfoForSignInRequestDto;
 import com.jeontongju.authentication.exception.DuplicateAuthenticationException;
 import com.jeontongju.authentication.security.jwt.JwtTokenProvider;
 import com.jeontongju.authentication.security.jwt.token.JwtAuthenticationToken;
