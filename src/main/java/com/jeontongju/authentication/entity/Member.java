@@ -3,18 +3,13 @@ package com.jeontongju.authentication.entity;
 import static javax.persistence.GenerationType.IDENTITY;
 
 import com.jeontongju.authentication.enums.MemberRoleEnum;
-
+import java.util.List;
 import javax.persistence.*;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.List;
 
 @Entity
 @Table(
@@ -29,6 +24,7 @@ import java.util.List;
 @Builder
 @Getter
 public class Member {
+
   @Id
   @GeneratedValue(strategy = IDENTITY)
   @Column(name = "member_id")
@@ -58,13 +54,4 @@ public class Member {
 
   @OneToMany(mappedBy = "member")
   private List<SnsAccount> snsAccountList;
-
-  public static Member register(String email, String password, MemberRoleEnum role) {
-    PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    return Member.builder()
-        .username(email)
-        .password(passwordEncoder.encode(password))
-        .memberRoleEnum(role)
-        .build();
-  }
 }

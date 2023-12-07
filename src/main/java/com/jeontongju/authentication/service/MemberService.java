@@ -5,12 +5,12 @@ import com.jeontongju.authentication.dto.request.*;
 import com.jeontongju.authentication.dto.response.ImpAuthInfo;
 import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
 import com.jeontongju.authentication.dto.response.oauth.kakao.KakaoOAuthInfo;
-import com.jeontongju.authentication.dto.response.oauth.kakao.Profile;
 import com.jeontongju.authentication.entity.Member;
 import com.jeontongju.authentication.entity.SnsAccount;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
 import com.jeontongju.authentication.enums.SnsTypeEnum;
 import com.jeontongju.authentication.exception.DuplicateEmailException;
+import com.jeontongju.authentication.mapper.MemberMapper;
 import com.jeontongju.authentication.repository.MemberRepository;
 import com.jeontongju.authentication.repository.SnsAccountRepository;
 import com.jeontongju.authentication.service.feign.consumer.ConsumerClientService;
@@ -38,6 +38,7 @@ public class MemberService {
   private final SnsAccountRepository snsAccountRepository;
   private final ConsumerClientService consumerClientService;
   private final SellerClientService sellerClientService;
+  private final MemberMapper memberMapper;
 
   public MailAuthCodeResponseDto sendEmailAuthForSignUp(EmailInfoForAuthRequestDto authRequestDto)
       throws MessagingException, UnsupportedEncodingException {
@@ -53,42 +54,40 @@ public class MemberService {
   }
 
   @Transactional
-  public void signupForConsumer(ConsumerInfoForSignUpRequestDto signupRequestDto) {
+  public void signupForConsumer(ConsumerInfoForSignUpRequestDto signupRequestDto)
+      throws JSONException, IOException {
+
+    ImpAuthInfo impAuthInfo = Auth19Manager.authenticate19(signupRequestDto.getImpUid());
+
     Member savedConsumer =
         memberRepository.save(
-            Member.register(
+            memberMapper.toEntity(
                 signupRequestDto.getEmail(),
                 signupRequestDto.getPassword(),
                 MemberRoleEnum.ROLE_CONSUMER));
 
     consumerClientService.createConsumerForSignup(
         ConsumerInfoForCreateRequestDto.toDto(
-            savedConsumer.getMemberId(), savedConsumer.getUsername(), signupRequestDto.getName()));
+            savedConsumer.getMemberId(), savedConsumer.getUsername(), impAuthInfo));
   }
 
   @Transactional
-  public void signupForSeller(SellerInfoForSignUpRequestDto signUpRequestDto) {
+  public void signupForSeller(SellerInfoForSignUpRequestDto signUpRequestDto)
+      throws JSONException, IOException {
 
-    try {
-      // 성인 인증
-      ImpAuthInfo impAuthInfo = Auth19Manager.authenticate19(signUpRequestDto.getImpUid());
+    // 성인 인증
+    ImpAuthInfo impAuthInfo = Auth19Manager.authenticate19(signUpRequestDto.getImpUid());
 
-      Member savedSeller =
-          memberRepository.save(
-              Member.register(
-                  signUpRequestDto.getEmail(),
-                  signUpRequestDto.getPassword(),
-                  MemberRoleEnum.ROLE_SELLER));
+    Member savedSeller =
+        memberRepository.save(
+            memberMapper.toEntity(
+                signUpRequestDto.getEmail(),
+                signUpRequestDto.getPassword(),
+                MemberRoleEnum.ROLE_SELLER));
 
-      sellerClientService.createSellerForSignup(
-          SellerInfoForCreateRequestDto.toDto(
-              savedSeller.getMemberId(), signUpRequestDto, impAuthInfo));
-
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    } catch (JSONException e) {
-      throw new RuntimeException(e);
-    }
+    sellerClientService.createSellerForSignup(
+        SellerInfoForCreateRequestDto.toDto(
+            savedSeller.getMemberId(), signUpRequestDto, impAuthInfo));
   }
 
   private Boolean isUniqueKeyDuplicated(String email, String memberRole) {
@@ -107,7 +106,7 @@ public class MemberService {
     }
 
     Member savedMember =
-        memberRepository.save(Member.register(email, "", MemberRoleEnum.ROLE_CONSUMER));
+        memberRepository.save(memberMapper.toEntity(email, "", MemberRoleEnum.ROLE_CONSUMER));
     snsAccountRepository.save(
         SnsAccount.register(
             SnsTypeEnum.KAKAO.name() + "_" + kakaoOAuthInfo.getId(),
