@@ -26,7 +26,5 @@ public class ConsumerInfoForSignUpRequestDto {
   @Size(min = 8, max = 16, message = "회원가입 형식에 맞게 입력해주세요")
   private String password;
 
-  @NotNull
-  @Size(max = 10, message = "회원가입 형식에 맞게 입력해주세요")
-  private String name;
+  @NotNull private String impUid;
 }

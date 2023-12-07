@@ -1,5 +1,6 @@
 package com.jeontongju.authentication.dto.request;
 
+import com.jeontongju.authentication.dto.response.ImpAuthInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,17 +12,18 @@ import lombok.NoArgsConstructor;
 @Getter
 public class ConsumerInfoForCreateRequestDto {
 
-  private Long memberId;
-
+  private Long consumerId;
   private String email;
-
   private String name;
+  private String phoneNumber;
 
-  public static ConsumerInfoForCreateRequestDto toDto(Long memberId, String email, String name) {
+  public static ConsumerInfoForCreateRequestDto toDto(
+          Long consumerId, String email, ImpAuthInfo impAuthInfo) {
     return ConsumerInfoForCreateRequestDto.builder()
-        .memberId(memberId)
+        .consumerId(consumerId)
         .email(email)
-        .name(name)
+        .name(impAuthInfo.getName())
+        .phoneNumber(impAuthInfo.getPhone())
         .build();
   }
 }
