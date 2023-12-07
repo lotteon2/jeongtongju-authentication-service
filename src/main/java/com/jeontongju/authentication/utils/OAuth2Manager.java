@@ -2,6 +2,7 @@ package com.jeontongju.authentication.utils;
 
 import com.jeontongju.authentication.dto.response.oauth.kakao.KakaoOAuthInfo;
 import com.jeontongju.authentication.dto.response.oauth.kakao.KakaoTokenInfo;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
@@ -10,8 +11,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.Map;
 
 @Slf4j
 @Component
@@ -51,7 +50,6 @@ public class OAuth2Manager {
                 kakaoTokenInfo.getToken_type(), kakaoTokenInfo.getAccess_token()));
 
     // 사용자 정보 가져오기
-
     return template.postForObject(GET_OAUTH_INFO_URL, requestEntity, KakaoOAuthInfo.class);
   }
 

@@ -5,9 +5,7 @@ import com.jeontongju.authentication.dto.request.ConsumerInfoForSignUpRequestDto
 import com.jeontongju.authentication.dto.request.EmailInfoForAuthRequestDto;
 import com.jeontongju.authentication.dto.request.SellerInfoForSignUpRequestDto;
 import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
-import com.jeontongju.authentication.dto.temp.FeignFormat;
 import com.jeontongju.authentication.service.MemberService;
-
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import javax.mail.MessagingException;

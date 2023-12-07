@@ -18,11 +18,10 @@ import com.jeontongju.authentication.service.feign.seller.SellerClientService;
 import com.jeontongju.authentication.utils.Auth19Manager;
 import com.jeontongju.authentication.utils.CustomErrMessage;
 import com.jeontongju.authentication.utils.MailManager;
+import com.jeontongju.authentication.utils.OAuth2Manager;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import javax.mail.MessagingException;
-
-import com.jeontongju.authentication.utils.OAuth2Manager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
