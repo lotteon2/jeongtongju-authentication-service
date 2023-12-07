@@ -4,6 +4,7 @@ import com.jeontongju.authentication.dto.MailInfoDto;
 import com.jeontongju.authentication.dto.request.*;
 import com.jeontongju.authentication.dto.response.ImpAuthInfo;
 import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
+import com.jeontongju.authentication.dto.response.oauth.google.GoogleOAuthInfo;
 import com.jeontongju.authentication.dto.response.oauth.kakao.KakaoOAuthInfo;
 import com.jeontongju.authentication.entity.Member;
 import com.jeontongju.authentication.entity.SnsAccount;
@@ -112,10 +113,31 @@ public class MemberService {
             SnsTypeEnum.KAKAO.name(),
             savedMember));
 
-    consumerClientService.createConsumerForSignupByKakao(
+    consumerClientService.createConsumerForSignupBySns(
         ConsumerInfoForCreateByKakaoRequestDto.toDto(
             savedMember.getMemberId(),
             email,
             kakaoOAuthInfo.getKakao_account().getProfile().getProfile_image_url()));
+  }
+
+  @Transactional
+  public void signInForConsumerByGoogle(String code) {
+    GoogleOAuthInfo googleOAuthInfo = OAuth2Manager.authenticateByGoogle(code);
+    String email = googleOAuthInfo.getEmail();
+    if (isUniqueKeyDuplicated(email, MemberRoleEnum.ROLE_CONSUMER.name())) {
+      throw new DuplicateEmailException(CustomErrMessage.EMAIL_ALREADY_IN_USE);
+    }
+
+    Member savedMember =
+        memberRepository.save(memberMapper.toEntity(email, "", MemberRoleEnum.ROLE_CONSUMER));
+    snsAccountRepository.save(
+        SnsAccount.register(
+            SnsTypeEnum.GOOGLE.name() + "_" + googleOAuthInfo.getId(),
+            SnsTypeEnum.GOOGLE.name(),
+            savedMember));
+
+    consumerClientService.createConsumerForSignupBySns(
+        ConsumerInfoForCreateByKakaoRequestDto.toDto(
+            savedMember.getMemberId(), email, googleOAuthInfo.getPicture()));
   }
 }

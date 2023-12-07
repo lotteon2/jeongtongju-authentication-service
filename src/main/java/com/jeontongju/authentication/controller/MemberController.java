@@ -75,7 +75,6 @@ public class MemberController {
   }
 
   @GetMapping("/sign-in/oauth2/code/kakao")
-  @ResponseBody
   public ResponseEntity<SuccessFormat<Void>> signInForConsumerBySns(
       @RequestParam("code") String code) {
 
@@ -88,5 +87,13 @@ public class MemberController {
                 .message(HttpStatus.OK.name())
                 .detail("소비자 소셜 로그인 성공")
                 .build());
+  }
+
+  @GetMapping("/sign-in/oauth2/code/google")
+  public ResponseEntity<SuccessFormat<Void>> signInForConsumerByGoogle(
+      @RequestParam("code") String code) {
+
+    memberService.signInForConsumerByGoogle(code);
+    return null;
   }
 }

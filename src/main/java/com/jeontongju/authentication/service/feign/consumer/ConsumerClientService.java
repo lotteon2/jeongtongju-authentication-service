@@ -15,8 +15,8 @@ public class ConsumerClientService {
     consumerServiceClient.createConsumerForSignup(createRequestDto);
   }
 
-  public void createConsumerForSignupByKakao(
+  public void createConsumerForSignupBySns(
       ConsumerInfoForCreateByKakaoRequestDto createByKakaoRequestDto) {
-    consumerServiceClient.createConsumerForSignupByKakao(createByKakaoRequestDto);
+    consumerServiceClient.createConsumerForSignupBySns(createByKakaoRequestDto);
   }
 }

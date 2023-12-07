@@ -13,6 +13,6 @@ public interface ConsumerServiceClient {
   FeignFormat<Void> createConsumerForSignup(ConsumerInfoForCreateRequestDto createRequestDto);
 
   @PostMapping("/consumers/oauth")
-  FeignFormat<Void> createConsumerForSignupByKakao(
+  FeignFormat<Void> createConsumerForSignupBySns(
       ConsumerInfoForCreateByKakaoRequestDto createByKakaoRequestDto);
 }
