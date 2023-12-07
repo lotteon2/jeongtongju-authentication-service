@@ -5,7 +5,7 @@ import com.jeontongju.authentication.dto.temp.FeignFormat;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 
-@FeignClient(name = "seller-service", url = "${endpoint.seller-service}")
+@FeignClient(name = "seller-service")
 public interface SellerServiceClient {
 
   @PostMapping("/sellers")
