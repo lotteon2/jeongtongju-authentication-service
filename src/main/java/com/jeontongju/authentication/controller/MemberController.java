@@ -10,13 +10,12 @@ import java.io.UnsupportedEncodingException;
 import javax.mail.MessagingException;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -29,8 +28,8 @@ public class MemberController {
       @Valid @RequestBody EmailInfoForAuthRequestDto emailInfoDto)
       throws MessagingException, UnsupportedEncodingException {
 
-    MailAuthCodeResponseDto mailAuthCodeResponseDto = memberService.sendEmailAuthForSignUp(
-        emailInfoDto);
+    MailAuthCodeResponseDto mailAuthCodeResponseDto =
+        memberService.sendEmailAuthForSignUp(emailInfoDto);
     return ResponseEntity.ok()
         .body(
             SuccessFormat.builder()
@@ -42,7 +41,7 @@ public class MemberController {
   }
 
   @PostMapping("/consumers/sign-up")
-  public ResponseEntity<SuccessFormat> signupForConsumer(
+  public ResponseEntity<SuccessFormat<Object>> signupForConsumer(
       @Valid @RequestBody ConsumerInfoForSignUpRequestDto signupRequestDto) {
 
     memberService.signupForConsumer(signupRequestDto);
@@ -57,7 +56,7 @@ public class MemberController {
   }
 
   @PostMapping("/sellers/sign-up")
-  public ResponseEntity<SuccessFormat> signupForSeller(
+  public ResponseEntity<SuccessFormat<Object>> signupForSeller(
       @Valid @RequestBody SellerInfoForSignUpRequestDto signUpRequestDto) {
 
     memberService.signupForSeller(signUpRequestDto);
@@ -68,6 +67,23 @@ public class MemberController {
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("셀러 회원가입 성공")
+                .build());
+  }
+
+  @GetMapping("/sign-in/oauth2/code/kakao")
+  @ResponseBody
+  public ResponseEntity<SuccessFormat<Object>> signInForConsumerBySns(
+      @RequestParam("code") String code) {
+
+    log.info("code: " + code);
+    memberService.signInForConsumerByKakao(code);
+
+    return ResponseEntity.ok()
+        .body(
+            SuccessFormat.builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("사용자 소셜 로그인 성공")
                 .build());
   }
 }

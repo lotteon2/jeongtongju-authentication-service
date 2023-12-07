@@ -9,19 +9,18 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @Getter
-public class ConsumerInfoForCreateRequestDto {
+public class ConsumerInfoForCreateByKakaoRequestDto {
 
   private Long consumerId;
-
   private String email;
+  private String profileImageUrl;
 
-  private String name;
-
-  public static ConsumerInfoForCreateRequestDto toDto(Long consumerId, String email, String name) {
-    return ConsumerInfoForCreateRequestDto.builder()
+  public static ConsumerInfoForCreateByKakaoRequestDto toDto(
+      Long consumerId, String email, String profileImageUrl) {
+    return ConsumerInfoForCreateByKakaoRequestDto.builder()
         .consumerId(consumerId)
         .email(email)
-        .name(name)
+        .profileImageUrl(profileImageUrl)
         .build();
   }
 }

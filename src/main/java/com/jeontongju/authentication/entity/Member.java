@@ -3,14 +3,9 @@ package com.jeontongju.authentication.entity;
 import static javax.persistence.GenerationType.IDENTITY;
 
 import com.jeontongju.authentication.enums.MemberRoleEnum;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+
+import javax.persistence.*;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,6 +13,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.List;
 
 @Entity
 @Table(
@@ -58,6 +55,9 @@ public class Member {
   @Column(name = "is_deleted", nullable = false)
   @Builder.Default
   private Boolean isDeleted = false;
+
+  @OneToMany(mappedBy = "member")
+  private List<SnsAccount> snsAccountList;
 
   public static Member register(String email, String password, MemberRoleEnum role) {
     PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
