@@ -23,7 +23,7 @@ public class MemberDetails implements UserDetails {
         new GrantedAuthority() {
           @Override
           public String getAuthority() {
-            return member.getMemberRoleEnum().toString();
+            return member.getMemberRoleEnum().name();
           }
         });
     return collect;
