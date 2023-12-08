@@ -6,8 +6,8 @@ import lombok.ToString;
 
 @Getter
 @Setter
-@ToString
 public class ImpTokenInfo {
+
   private String access_token;
   private Long now;
   private Long expired_at;

@@ -6,6 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ImpTokenResponse {
+
   private Integer code;
   private String message;
   private ImpTokenInfo response;

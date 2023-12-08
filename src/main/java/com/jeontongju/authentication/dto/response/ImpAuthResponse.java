@@ -6,7 +6,6 @@ import lombok.ToString;
 
 @Getter
 @Setter
-@ToString
 public class ImpAuthResponse {
   private Integer code;
   private String message;
