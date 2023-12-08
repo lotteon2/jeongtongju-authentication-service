@@ -79,13 +79,12 @@ public class MemberController {
       @RequestParam("code") String code) {
 
     memberService.signInForConsumerByKakao(code);
-
     return ResponseEntity.ok()
         .body(
             SuccessFormat.<Void>builder()
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
-                .detail("소비자 소셜 로그인 성공")
+                .detail("소비자 소셜 로그인 성공 - KAKAO")
                 .build());
   }
 
@@ -94,6 +93,12 @@ public class MemberController {
       @RequestParam("code") String code) {
 
     memberService.signInForConsumerByGoogle(code);
-    return null;
+    return ResponseEntity.ok()
+        .body(
+            SuccessFormat.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("소비자 소셜 로그인 성공 - GOOGLE")
+                .build());
   }
 }
