@@ -4,19 +4,23 @@ import com.jeontongju.authentication.dto.request.ConsumerInfoForCreateByKakaoReq
 import com.jeontongju.authentication.dto.request.ConsumerInfoForCreateRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ConsumerClientService {
 
   private final ConsumerServiceClient consumerServiceClient;
 
+  @Transactional
   public void createConsumerForSignup(ConsumerInfoForCreateRequestDto createRequestDto) {
     consumerServiceClient.createConsumerForSignup(createRequestDto);
   }
 
-  public void createConsumerForSignupByKakao(
+  @Transactional
+  public void createConsumerForSignupBySns(
       ConsumerInfoForCreateByKakaoRequestDto createByKakaoRequestDto) {
-    consumerServiceClient.createConsumerForSignupByKakao(createByKakaoRequestDto);
+    consumerServiceClient.createConsumerForSignupBySns(createByKakaoRequestDto);
   }
 }

@@ -9,5 +9,5 @@ import org.springframework.web.bind.annotation.PostMapping;
 public interface SellerServiceClient {
 
   @PostMapping("/sellers")
-  FeignFormat<Object> createSellerForSignup(SellerInfoForCreateRequestDto createRequestDto);
+  FeignFormat<Void> createSellerForSignup(SellerInfoForCreateRequestDto createRequestDto);
 }

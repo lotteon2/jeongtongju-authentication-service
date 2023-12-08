@@ -4,6 +4,7 @@ import com.jeontongju.authentication.dto.MailInfoDto;
 import com.jeontongju.authentication.dto.request.*;
 import com.jeontongju.authentication.dto.response.ImpAuthInfo;
 import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
+import com.jeontongju.authentication.dto.response.oauth.google.GoogleOAuthInfo;
 import com.jeontongju.authentication.dto.response.oauth.kakao.KakaoOAuthInfo;
 import com.jeontongju.authentication.entity.Member;
 import com.jeontongju.authentication.entity.SnsAccount;
@@ -18,11 +19,10 @@ import com.jeontongju.authentication.service.feign.seller.SellerClientService;
 import com.jeontongju.authentication.utils.Auth19Manager;
 import com.jeontongju.authentication.utils.CustomErrMessage;
 import com.jeontongju.authentication.utils.MailManager;
+import com.jeontongju.authentication.utils.OAuth2Manager;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import javax.mail.MessagingException;
-
-import com.jeontongju.authentication.utils.OAuth2Manager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class MemberService {
 
   private final MemberRepository memberRepository;
@@ -113,10 +114,31 @@ public class MemberService {
             SnsTypeEnum.KAKAO.name(),
             savedMember));
 
-    consumerClientService.createConsumerForSignupByKakao(
+    consumerClientService.createConsumerForSignupBySns(
         ConsumerInfoForCreateByKakaoRequestDto.toDto(
             savedMember.getMemberId(),
             email,
             kakaoOAuthInfo.getKakao_account().getProfile().getProfile_image_url()));
+  }
+
+  @Transactional
+  public void signInForConsumerByGoogle(String code) {
+    GoogleOAuthInfo googleOAuthInfo = OAuth2Manager.authenticateByGoogle(code);
+    String email = googleOAuthInfo.getEmail();
+    if (isUniqueKeyDuplicated(email, MemberRoleEnum.ROLE_CONSUMER.name())) {
+      throw new DuplicateEmailException(CustomErrMessage.EMAIL_ALREADY_IN_USE);
+    }
+
+    Member savedMember =
+        memberRepository.save(memberMapper.toEntity(email, "", MemberRoleEnum.ROLE_CONSUMER));
+    snsAccountRepository.save(
+        SnsAccount.register(
+            SnsTypeEnum.GOOGLE.name() + "_" + googleOAuthInfo.getId(),
+            SnsTypeEnum.GOOGLE.name(),
+            savedMember));
+
+    consumerClientService.createConsumerForSignupBySns(
+        ConsumerInfoForCreateByKakaoRequestDto.toDto(
+            savedMember.getMemberId(), email, googleOAuthInfo.getPicture()));
   }
 }

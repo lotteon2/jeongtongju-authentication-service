@@ -5,9 +5,7 @@ import com.jeontongju.authentication.dto.request.ConsumerInfoForSignUpRequestDto
 import com.jeontongju.authentication.dto.request.EmailInfoForAuthRequestDto;
 import com.jeontongju.authentication.dto.request.SellerInfoForSignUpRequestDto;
 import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
-import com.jeontongju.authentication.dto.temp.FeignFormat;
 import com.jeontongju.authentication.service.MemberService;
-
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import javax.mail.MessagingException;
@@ -77,18 +75,30 @@ public class MemberController {
   }
 
   @GetMapping("/sign-in/oauth2/code/kakao")
-  @ResponseBody
   public ResponseEntity<SuccessFormat<Void>> signInForConsumerBySns(
       @RequestParam("code") String code) {
 
     memberService.signInForConsumerByKakao(code);
-
     return ResponseEntity.ok()
         .body(
             SuccessFormat.<Void>builder()
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
-                .detail("소비자 소셜 로그인 성공")
+                .detail("소비자 소셜 로그인 성공 - KAKAO")
+                .build());
+  }
+
+  @GetMapping("/sign-in/oauth2/code/google")
+  public ResponseEntity<SuccessFormat<Void>> signInForConsumerByGoogle(
+      @RequestParam("code") String code) {
+
+    memberService.signInForConsumerByGoogle(code);
+    return ResponseEntity.ok()
+        .body(
+            SuccessFormat.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("소비자 소셜 로그인 성공 - GOOGLE")
                 .build());
   }
 }

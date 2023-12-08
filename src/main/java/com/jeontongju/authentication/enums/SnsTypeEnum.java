@@ -1,7 +1,8 @@
 package com.jeontongju.authentication.enums;
 
 public enum SnsTypeEnum {
-  KAKAO("KAKAO");
+  KAKAO("KAKAO"),
+  GOOGLE("GOOGLE");
 
   private final String value;
 

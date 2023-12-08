@@ -1,7 +1,9 @@
 package com.jeontongju.authentication.security.jwt.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jeontongju.authentication.dto.SuccessFormat;
 import com.jeontongju.authentication.dto.request.MemberInfoForSignInRequestDto;
+import com.jeontongju.authentication.dto.response.JwtAccessTokenResponse;
 import com.jeontongju.authentication.exception.DuplicateAuthenticationException;
 import com.jeontongju.authentication.security.jwt.JwtTokenProvider;
 import com.jeontongju.authentication.security.jwt.token.JwtAuthenticationToken;
@@ -12,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
@@ -30,7 +33,8 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
   private final ObjectMapper objectMapper = new ObjectMapper();
   private final JwtTokenProvider jwtTokenProvider;
 
-  public JwtAuthenticationFilter(AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) {
+  public JwtAuthenticationFilter(
+      AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) {
     super(DEFAULT_FILTER_PROCESSES_URL, authenticationManager);
     this.jwtTokenProvider = jwtTokenProvider;
   }
@@ -39,7 +43,7 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
   public Authentication attemptAuthentication(
       HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
-    if(isAlreadyAuthenticated()) {
+    if (isAlreadyAuthenticated()) {
       throw new DuplicateAuthenticationException();
     }
 
@@ -63,12 +67,12 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
 
   private boolean isAlreadyAuthenticated() {
     SecurityContext securityContext = SecurityContextHolder.getContext();
-    if(securityContext == null) {
+    if (securityContext == null) {
       return false;
     }
 
     Authentication authentication = securityContext.getAuthentication();
-    if(authentication == null) {
+    if (authentication == null) {
       return false;
     }
 
@@ -80,9 +84,10 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
       HttpServletRequest request,
       HttpServletResponse response,
       FilterChain filterChain,
-      Authentication authResult) {
+      Authentication authResult)
+      throws IOException {
 
-    log.info("Successful sing-up!");
+    log.info("Successful sign-up!");
     String jwtToken = jwtTokenProvider.createToken(authResult);
 
     response.addHeader("Authorization", "Bearer " + jwtToken);
@@ -92,5 +97,16 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
     cookie.setPath("/");
     cookie.setSecure(false);
     response.addCookie(cookie);
+
+    response.setCharacterEncoding("UTF-8");
+    response.setContentType("application/json; charset=UTF-8");
+
+    JwtAccessTokenResponse accessToken =
+        JwtAccessTokenResponse.builder().accessToken("Bearer " + jwtToken).build();
+
+    objectMapper.writeValue(
+        response.getWriter(),
+        new SuccessFormat<>(
+            HttpStatus.OK.value(), HttpStatus.OK.name(), "소비자 일반 로그인 성공", accessToken));
   }
 }

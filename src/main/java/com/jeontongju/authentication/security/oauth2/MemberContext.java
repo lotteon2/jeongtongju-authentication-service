@@ -1,13 +1,12 @@
 package com.jeontongju.authentication.security.oauth2;
 
 import com.jeontongju.authentication.entity.Member;
+import java.util.Collection;
+import java.util.Map;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-
-import java.util.Collection;
-import java.util.Map;
 
 @Getter
 public class MemberContext extends User implements OAuth2User {
