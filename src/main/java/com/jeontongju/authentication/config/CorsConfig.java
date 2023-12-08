@@ -16,10 +16,10 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.setAllowedOrigins(
-            List.of("https://jeontongju-jumo.netlify.app/")
+            List.of("https://jeontongju-jumo.netlify.app/", "https://test-jeontongju-jumo.netlify.app/")
         );
         config.setAllowedMethods(
-            List.of("GET", "POST", "PUT", "PATCH", "DELETE")
+            List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
         );
         config.addAllowedHeader("*");
         config.addExposedHeader("Authorization");
