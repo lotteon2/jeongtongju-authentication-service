@@ -1,11 +1,10 @@
 package com.jeontongju.authentication.dto.request;
 
+import com.jeontongju.authentication.enums.MemberRoleEnum;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-
-import com.jeontongju.authentication.enums.MemberRoleEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

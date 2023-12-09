@@ -3,7 +3,9 @@ package com.jeontongju.authentication.controller;
 import com.jeontongju.authentication.dto.SuccessFormat;
 import com.jeontongju.authentication.dto.request.ConsumerInfoForSignUpRequestDto;
 import com.jeontongju.authentication.dto.request.EmailInfoForAuthRequestDto;
+import com.jeontongju.authentication.dto.request.RefreshTokenForCompareInRedisRequestDto;
 import com.jeontongju.authentication.dto.request.SellerInfoForSignUpRequestDto;
+import com.jeontongju.authentication.dto.response.JwtAccessTokenResponse;
 import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
 import com.jeontongju.authentication.service.MemberService;
 import java.io.IOException;
@@ -99,6 +101,21 @@ public class MemberController {
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("소비자 소셜 로그인 성공 - GOOGLE")
+                .build());
+  }
+
+  @PutMapping("/access-token")
+  public ResponseEntity<SuccessFormat<JwtAccessTokenResponse>> issueAccessTokenByRefreshToken(
+      RefreshTokenForCompareInRedisRequestDto refreshTokenRequestDto) {
+
+    JwtAccessTokenResponse jwtAccessTokenResponse =
+        memberService.renewAccessTokenByRefreshToken(refreshTokenRequestDto);
+    return ResponseEntity.ok()
+        .body(
+            SuccessFormat.<JwtAccessTokenResponse>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("Access-Token 재발급 성공")
                 .build());
   }
 }

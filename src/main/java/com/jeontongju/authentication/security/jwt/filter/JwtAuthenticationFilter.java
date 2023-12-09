@@ -5,6 +5,7 @@ import com.jeontongju.authentication.dto.SuccessFormat;
 import com.jeontongju.authentication.dto.request.MemberInfoForSignInRequestDto;
 import com.jeontongju.authentication.dto.response.JwtAccessTokenResponse;
 import com.jeontongju.authentication.exception.DuplicateAuthenticationException;
+import com.jeontongju.authentication.security.MemberDetails;
 import com.jeontongju.authentication.security.jwt.JwtTokenProvider;
 import com.jeontongju.authentication.security.jwt.token.JwtAuthenticationToken;
 import java.io.IOException;
@@ -13,6 +14,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,11 +35,15 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
 
   private final ObjectMapper objectMapper = new ObjectMapper();
   private final JwtTokenProvider jwtTokenProvider;
+  private final RedisTemplate<String, String> redisTemplate;
 
   public JwtAuthenticationFilter(
-      AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) {
+      AuthenticationManager authenticationManager,
+      JwtTokenProvider jwtTokenProvider,
+      RedisTemplate<String, String> redisTemplate) {
     super(DEFAULT_FILTER_PROCESSES_URL, authenticationManager);
     this.jwtTokenProvider = jwtTokenProvider;
+    this.redisTemplate = redisTemplate;
   }
 
   @Override
@@ -55,7 +62,9 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
 
       JwtAuthenticationToken jwtAuthenticationToken =
           JwtAuthenticationToken.unauthenticated(
-              signInRequestDto.getEmail(), signInRequestDto.getPassword(), signInRequestDto.getMemberRole().name());
+              signInRequestDto.getEmail(),
+              signInRequestDto.getPassword(),
+              signInRequestDto.getMemberRole().name());
 
       log.info("AuthenticationManager's authenticate executes");
       return this.getAuthenticationManager().authenticate(jwtAuthenticationToken);
@@ -89,24 +98,34 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
 
     log.info("Successful sign-up!");
     String jwtToken = jwtTokenProvider.createToken(authResult);
+    MemberDetails memberDetails = (MemberDetails) authResult.getPrincipal();
+    String jwtRefreshToken =
+        jwtTokenProvider.createRefreshToken(memberDetails.getMember().getMemberId());
 
     response.addHeader("Authorization", "Bearer " + jwtToken);
 
-    Cookie cookie = new Cookie("jwt-token", jwtToken);
-    cookie.setMaxAge(1800000);
+    Cookie cookie = new Cookie("refreshToken", jwtRefreshToken);
+    cookie.setMaxAge(21600000);
+    cookie.setHttpOnly(true);
     cookie.setPath("/");
-    cookie.setSecure(false);
     response.addCookie(cookie);
 
     response.setCharacterEncoding("UTF-8");
     response.setContentType("application/json; charset=UTF-8");
 
-    JwtAccessTokenResponse accessToken =
+    JwtAccessTokenResponse jwtAccessTokenResponse =
         JwtAccessTokenResponse.builder().accessToken("Bearer " + jwtToken).build();
+
+    String memberRole = memberDetails.getMember().getMemberRoleEnum().name();
+    String refreshKey =
+        memberRole + "_" + ((MemberDetails) authResult.getPrincipal()).getUsername();
+
+    // refresh token 저장 in redis
+    ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();
+    stringStringValueOperations.set(refreshKey, jwtRefreshToken);
 
     objectMapper.writeValue(
         response.getWriter(),
-        new SuccessFormat<>(
-            HttpStatus.OK.value(), HttpStatus.OK.name(), "일반 로그인 성공", accessToken));
+        new SuccessFormat<>(HttpStatus.OK.value(), HttpStatus.OK.name(), "일반 로그인 성공", jwtToken));
   }
 }
