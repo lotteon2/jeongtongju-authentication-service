@@ -55,7 +55,7 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
 
       JwtAuthenticationToken jwtAuthenticationToken =
           JwtAuthenticationToken.unauthenticated(
-              signInRequestDto.getEmail(), signInRequestDto.getPassword());
+              signInRequestDto.getEmail(), signInRequestDto.getPassword(), signInRequestDto.getMemberRole().name());
 
       log.info("AuthenticationManager's authenticate executes");
       return this.getAuthenticationManager().authenticate(jwtAuthenticationToken);
@@ -107,6 +107,6 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
     objectMapper.writeValue(
         response.getWriter(),
         new SuccessFormat<>(
-            HttpStatus.OK.value(), HttpStatus.OK.name(), "소비자 일반 로그인 성공", accessToken));
+            HttpStatus.OK.value(), HttpStatus.OK.name(), "일반 로그인 성공", accessToken));
   }
 }

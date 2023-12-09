@@ -27,11 +27,20 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
 
   @Override
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+
     log.info("JwtAuthenticationProvider's authenticate executes");
     String username = authentication.getName();
     String password = authentication.getCredentials().toString();
 
+    JwtAuthenticationToken jwtAuthenticationToken = (JwtAuthenticationToken) authentication;
+    String memberRole = jwtAuthenticationToken.getRole();
+
     MemberDetails memberDetails = memberDetailsService.loadUserByUsername(username);
+
+    // 소비자 회원가입 페이지에서 온 요청은 셀러 로그인 불가, 반대도 불가
+    if (!memberRole.equals(memberDetails.getMember().getMemberRoleEnum().name())) {
+      throw new BadCredentialsException("인증에 실패했습니다.");
+    }
 
     if (!passwordEncoder.matches(password, memberDetails.getPassword())) {
       throw new BadCredentialsException("인증에 실패했습니다.");
