@@ -8,6 +8,7 @@ import com.jeontongju.authentication.security.jwt.filter.JwtAuthenticationFilter
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -24,6 +25,7 @@ public class SecurityConfig {
   private final CorsFilter corsFilter;
   private final JwtTokenProvider jwtTokenProvider;
   private final JwtAuthenticationProvider jwtAuthenticationProvider;
+  private final RedisTemplate<String, String> redisTemplate;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -40,6 +42,8 @@ public class SecurityConfig {
     http.authorizeRequests(
         authz ->
             authz
+                .antMatchers("/api/access-token")
+                .permitAll()
                 .antMatchers("/api/**/sign-up/**")
                 .permitAll()
                 .antMatchers("/api/sign-in/**")
@@ -57,7 +61,7 @@ public class SecurityConfig {
       AuthenticationManager authenticationManager =
           http.getSharedObject(AuthenticationManager.class);
       JwtAuthenticationFilter jwtAuthenticationFilter =
-          new JwtAuthenticationFilter(authenticationManager, jwtTokenProvider);
+          new JwtAuthenticationFilter(authenticationManager, jwtTokenProvider, redisTemplate);
       // UsernamePasswordAuthenticationFilter 직전
       http.addFilterAfter(jwtAuthenticationFilter, LogoutFilter.class)
           .authenticationProvider(jwtAuthenticationProvider);

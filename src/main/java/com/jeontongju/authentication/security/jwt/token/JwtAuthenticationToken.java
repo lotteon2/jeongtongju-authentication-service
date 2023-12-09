@@ -1,7 +1,6 @@
 package com.jeontongju.authentication.security.jwt.token;
 
 import java.util.Collection;
-
 import lombok.Getter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;

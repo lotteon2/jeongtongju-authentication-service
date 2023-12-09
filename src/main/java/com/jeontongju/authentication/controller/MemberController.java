@@ -4,11 +4,14 @@ import com.jeontongju.authentication.dto.SuccessFormat;
 import com.jeontongju.authentication.dto.request.ConsumerInfoForSignUpRequestDto;
 import com.jeontongju.authentication.dto.request.EmailInfoForAuthRequestDto;
 import com.jeontongju.authentication.dto.request.SellerInfoForSignUpRequestDto;
+import com.jeontongju.authentication.dto.response.JwtTokenResponse;
 import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
 import com.jeontongju.authentication.service.MemberService;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import javax.mail.MessagingException;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -99,6 +102,24 @@ public class MemberController {
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("소비자 소셜 로그인 성공 - GOOGLE")
+                .build());
+  }
+
+  @PutMapping("/access-token")
+  public ResponseEntity<SuccessFormat<String>> issueAccessTokenByRefreshToken(
+      @CookieValue("refreshToken") String refreshToken, HttpServletResponse response) {
+
+    JwtTokenResponse jwtTokenResponse = memberService.renewAccessTokenByRefreshToken(refreshToken);
+
+    Cookie cookie = new Cookie("refreshToken", jwtTokenResponse.getRefreshToken());
+    response.addCookie(cookie);
+    return ResponseEntity.ok()
+        .body(
+            SuccessFormat.<String>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("Access-Token 재발급 성공")
+                .data(jwtTokenResponse.getAccessToken())
                 .build());
   }
 }

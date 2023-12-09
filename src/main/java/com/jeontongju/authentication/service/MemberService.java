@@ -3,6 +3,7 @@ package com.jeontongju.authentication.service;
 import com.jeontongju.authentication.dto.MailInfoDto;
 import com.jeontongju.authentication.dto.request.*;
 import com.jeontongju.authentication.dto.response.ImpAuthInfo;
+import com.jeontongju.authentication.dto.response.JwtTokenResponse;
 import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
 import com.jeontongju.authentication.dto.response.oauth.google.GoogleOAuthInfo;
 import com.jeontongju.authentication.dto.response.oauth.kakao.KakaoOAuthInfo;
@@ -11,21 +12,36 @@ import com.jeontongju.authentication.entity.SnsAccount;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
 import com.jeontongju.authentication.enums.SnsTypeEnum;
 import com.jeontongju.authentication.exception.DuplicateEmailException;
+import com.jeontongju.authentication.exception.ExpiredRefreshTokenException;
+import com.jeontongju.authentication.exception.MalformedRefreshTokenException;
+import com.jeontongju.authentication.exception.NotValidRefreshTokenException;
 import com.jeontongju.authentication.mapper.MemberMapper;
 import com.jeontongju.authentication.repository.MemberRepository;
 import com.jeontongju.authentication.repository.SnsAccountRepository;
+import com.jeontongju.authentication.security.jwt.JwtTokenProvider;
 import com.jeontongju.authentication.service.feign.consumer.ConsumerClientService;
 import com.jeontongju.authentication.service.feign.seller.SellerClientService;
 import com.jeontongju.authentication.utils.Auth19Manager;
 import com.jeontongju.authentication.utils.CustomErrMessage;
 import com.jeontongju.authentication.utils.MailManager;
 import com.jeontongju.authentication.utils.OAuth2Manager;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import javax.crypto.SecretKey;
 import javax.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +56,11 @@ public class MemberService {
   private final ConsumerClientService consumerClientService;
   private final SellerClientService sellerClientService;
   private final MemberMapper memberMapper;
+  private final RedisTemplate<String, String> redisTemplate;
+  private final JwtTokenProvider jwtTokenProvider;
+
+  @Value("${jwt.secret}")
+  private String secret;
 
   public MailAuthCodeResponseDto sendEmailAuthForSignUp(EmailInfoForAuthRequestDto authRequestDto)
       throws MessagingException, UnsupportedEncodingException {
@@ -140,5 +161,54 @@ public class MemberService {
     consumerClientService.createConsumerForSignupBySns(
         ConsumerInfoForCreateByKakaoRequestDto.toDto(
             savedMember.getMemberId(), email, googleOAuthInfo.getPicture()));
+  }
+
+  public JwtTokenResponse renewAccessTokenByRefreshToken(String refreshToken) {
+
+    ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();
+
+    byte[] keyBytes = Decoders.BASE64.decode(secret);
+    SecretKey key = Keys.hmacShaKeyFor(keyBytes);
+
+    try {
+      Claims claims = checkValid(refreshToken, key);
+      String memberId = claims.get("memberId", String.class);
+      Member member =
+          memberRepository
+              .findByMemberId(Long.parseLong(memberId))
+              .orElseThrow(
+                  () ->
+                      new MalformedRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN));
+      String refreshKey = member.getMemberRoleEnum().name() + "_" + member.getUsername();
+      String refreshTokenInRedis = stringStringValueOperations.get(refreshKey);
+
+      // refreshtoken이 탈취되었을 가능성이 있을지 확인
+      if (!refreshToken.equals(refreshTokenInRedis)) {
+        // 다르면 탈취된 것으로 판단
+        redisTemplate.delete(refreshKey);
+        throw new MalformedRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN);
+      }
+
+      // Refresh Token Rotation 전략, access token 과 함께 refresh token 갱신
+      String renewedAccessToken = jwtTokenProvider.recreateToken(member);
+      String renewedRefreshToken = jwtTokenProvider.createRefreshToken(Long.parseLong(memberId));
+      stringStringValueOperations.set(refreshKey, renewedRefreshToken);
+
+      return JwtTokenResponse.builder()
+          .accessToken(renewedAccessToken)
+          .refreshToken(renewedRefreshToken)
+          .build();
+
+    } catch (ExpiredJwtException e) {
+      throw new ExpiredRefreshTokenException(CustomErrMessage.EXPIRED_REFRESH_TOKEN);
+    } catch (IllegalArgumentException | SignatureException | MalformedJwtException  e) {
+      throw new NotValidRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN);
+    }
+  }
+
+  private Claims checkValid(String jwt, SecretKey key)
+      throws IllegalArgumentException, ExpiredJwtException, SignatureException, MalformedJwtException {
+
+    return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwt).getBody();
   }
 }
