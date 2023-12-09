@@ -14,6 +14,7 @@ import com.jeontongju.authentication.enums.SnsTypeEnum;
 import com.jeontongju.authentication.exception.DuplicateEmailException;
 import com.jeontongju.authentication.exception.ExpiredRefreshTokenException;
 import com.jeontongju.authentication.exception.MalformedRefreshTokenException;
+import com.jeontongju.authentication.exception.NotValidRefreshTokenException;
 import com.jeontongju.authentication.mapper.MemberMapper;
 import com.jeontongju.authentication.repository.MemberRepository;
 import com.jeontongju.authentication.repository.SnsAccountRepository;
@@ -27,8 +28,10 @@ import com.jeontongju.authentication.utils.OAuth2Manager;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import javax.crypto.SecretKey;
@@ -197,12 +200,15 @@ public class MemberService {
           .build();
 
     } catch (ExpiredJwtException e) {
-      log.info("다시 로그인 해 주세요");
       throw new ExpiredRefreshTokenException(CustomErrMessage.EXPIRED_REFRESH_TOKEN);
+    } catch (IllegalArgumentException | SignatureException | MalformedJwtException  e) {
+      throw new NotValidRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN);
     }
   }
 
-  private Claims checkValid(String jwt, SecretKey key) {
+  private Claims checkValid(String jwt, SecretKey key)
+      throws IllegalArgumentException, ExpiredJwtException, SignatureException, MalformedJwtException {
+
     return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwt).getBody();
   }
 }
