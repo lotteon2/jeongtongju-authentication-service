@@ -11,9 +11,9 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
 
   private final Object principal;
   private final Object credentials;
-  private Object role;
+  private String role;
 
-  public JwtAuthenticationToken(Object principal, Object credentials, Object role) {
+  public JwtAuthenticationToken(Object principal, Object credentials, String role) {
     super(null);
     this.principal = principal;
     this.credentials = credentials;
@@ -30,7 +30,7 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
   }
 
   // 인증 처리전 호출
-  public static JwtAuthenticationToken unauthenticated(Object principal, Object credentials, Object role) {
+  public static JwtAuthenticationToken unauthenticated(Object principal, Object credentials, String role) {
     return new JwtAuthenticationToken(principal, credentials, role);
   }
 

@@ -27,12 +27,13 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
 
   @Override
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+
     log.info("JwtAuthenticationProvider's authenticate executes");
     String username = authentication.getName();
     String password = authentication.getCredentials().toString();
 
     JwtAuthenticationToken jwtAuthenticationToken = (JwtAuthenticationToken) authentication;
-    String memberRole = (String) jwtAuthenticationToken.getRole();
+    String memberRole = jwtAuthenticationToken.getRole();
 
     MemberDetails memberDetails = memberDetailsService.loadUserByUsername(username);
 
