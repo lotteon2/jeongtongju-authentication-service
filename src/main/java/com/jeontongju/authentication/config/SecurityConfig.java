@@ -42,6 +42,8 @@ public class SecurityConfig {
     http.authorizeRequests(
         authz ->
             authz
+                .antMatchers("/api/access-token")
+                .permitAll()
                 .antMatchers("/api/**/sign-up/**")
                 .permitAll()
                 .antMatchers("/api/sign-in/**")

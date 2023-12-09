@@ -3,7 +3,7 @@ package com.jeontongju.authentication.service;
 import com.jeontongju.authentication.dto.MailInfoDto;
 import com.jeontongju.authentication.dto.request.*;
 import com.jeontongju.authentication.dto.response.ImpAuthInfo;
-import com.jeontongju.authentication.dto.response.JwtAccessTokenResponse;
+import com.jeontongju.authentication.dto.response.JwtTokenResponse;
 import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
 import com.jeontongju.authentication.dto.response.oauth.google.GoogleOAuthInfo;
 import com.jeontongju.authentication.dto.response.oauth.kakao.KakaoOAuthInfo;
@@ -160,8 +160,7 @@ public class MemberService {
             savedMember.getMemberId(), email, googleOAuthInfo.getPicture()));
   }
 
-  public JwtAccessTokenResponse renewAccessTokenByRefreshToken(
-      RefreshTokenForCompareInRedisRequestDto refreshTokenRequestDto) {
+  public JwtTokenResponse renewAccessTokenByRefreshToken(String refreshToken) {
 
     ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();
 
@@ -169,7 +168,7 @@ public class MemberService {
     SecretKey key = Keys.hmacShaKeyFor(keyBytes);
 
     try {
-      Claims claims = checkValid(refreshTokenRequestDto.getRefreshToken(), key);
+      Claims claims = checkValid(refreshToken, key);
       String memberId = claims.get("memberId", String.class);
       Member member =
           memberRepository
@@ -181,7 +180,7 @@ public class MemberService {
       String refreshTokenInRedis = stringStringValueOperations.get(refreshKey);
 
       // refreshtoken이 탈취되었을 가능성이 있을지 확인
-      if (!refreshTokenRequestDto.getRefreshToken().equals(refreshTokenInRedis)) {
+      if (!refreshToken.equals(refreshTokenInRedis)) {
         // 다르면 탈취된 것으로 판단
         redisTemplate.delete(refreshKey);
         throw new MalformedRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN);
@@ -190,9 +189,11 @@ public class MemberService {
       // Refresh Token Rotation 전략, access token 과 함께 refresh token 갱신
       String renewedAccessToken = jwtTokenProvider.recreateToken(member);
       String renewedRefreshToken = jwtTokenProvider.createRefreshToken(Long.parseLong(memberId));
+      stringStringValueOperations.set(refreshKey, renewedRefreshToken);
 
-      return JwtAccessTokenResponse.builder()
+      return JwtTokenResponse.builder()
           .accessToken(renewedAccessToken)
+          .refreshToken(renewedRefreshToken)
           .build();
 
     } catch (ExpiredJwtException e) {
