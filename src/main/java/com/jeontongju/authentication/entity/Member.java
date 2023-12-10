@@ -10,6 +10,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Entity
 @Table(
@@ -54,4 +56,9 @@ public class Member {
 
   @OneToMany(mappedBy = "member")
   private List<SnsAccount> snsAccountList;
+
+  public void assignPassword(String password) {
+    PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    this.password = passwordEncoder.encode(password);
+  }
 }

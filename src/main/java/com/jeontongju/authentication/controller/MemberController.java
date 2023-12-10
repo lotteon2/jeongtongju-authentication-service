@@ -1,13 +1,9 @@
 package com.jeontongju.authentication.controller;
 
 import com.jeontongju.authentication.dto.SuccessFormat;
-import com.jeontongju.authentication.dto.request.ConsumerInfoForSignUpRequestDto;
-import com.jeontongju.authentication.dto.request.EmailInfoForAuthRequestDto;
-import com.jeontongju.authentication.dto.request.PasswordForCheckRequestDto;
-import com.jeontongju.authentication.dto.request.SellerInfoForSignUpRequestDto;
+import com.jeontongju.authentication.dto.request.*;
 import com.jeontongju.authentication.dto.response.JwtTokenResponse;
 import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
-import com.jeontongju.authentication.enums.MemberRoleEnum;
 import com.jeontongju.authentication.service.MemberService;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -138,6 +134,22 @@ public class MemberController {
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("비밀번호 수정 - 현재 비밀번호 확인 성공")
+                .build());
+  }
+
+  @PatchMapping("/password")
+  public ResponseEntity<SuccessFormat<Void>> modifyPassword(
+      @RequestHeader Long memberId,
+      @Valid @RequestBody PasswordForChangeRequestDto changeRequestDto) {
+
+    memberService.modifyPassword(memberId, changeRequestDto);
+
+    return ResponseEntity.ok()
+        .body(
+            SuccessFormat.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("새 비밀번호로 변경 성공")
                 .build());
   }
 }

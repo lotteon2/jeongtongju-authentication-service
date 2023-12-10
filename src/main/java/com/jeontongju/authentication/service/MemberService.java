@@ -215,8 +215,7 @@ public class MemberService {
     return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwt).getBody();
   }
 
-  public void confirmOriginPassword(
-      Long memberId, PasswordForCheckRequestDto checkRequestDto) {
+  public void confirmOriginPassword(Long memberId, PasswordForCheckRequestDto checkRequestDto) {
 
     Member foundMember =
         memberRepository
@@ -228,5 +227,15 @@ public class MemberService {
     if (!passwordEncoder.matches(checkRequestDto.getOriginalPassword(), passwordInDB)) {
       throw new NotCorrespondPassword(CustomErrMessage.NOT_CORRESPOND_ORIGIN_PASSWORD);
     }
+  }
+
+  @Transactional
+  public void modifyPassword(Long memberId, PasswordForChangeRequestDto changeRequestDto) {
+
+    Member foundMember =
+        memberRepository
+            .findByMemberId(memberId)
+            .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+    foundMember.assignPassword(changeRequestDto.getNewPassword());
   }
 }

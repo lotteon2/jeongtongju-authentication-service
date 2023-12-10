@@ -4,6 +4,7 @@ import com.jeontongju.authentication.dto.ErrorFormat;
 import com.jeontongju.authentication.exception.*;
 import com.jeontongju.authentication.utils.CustomErrMessage;
 import java.io.IOException;
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,20 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class MemberRestControllerAdvice extends ResponseEntityExceptionHandler {
+
+  @ExceptionHandler(EntityNotFoundException.class)
+  public ResponseEntity<ErrorFormat> handleNotFoundEntity() {
+
+    HttpStatus status = HttpStatus.BAD_REQUEST;
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(
+            ErrorFormat.builder()
+                .code(status.value())
+                .message(status.name())
+                .detail(CustomErrMessage.NOT_FOUND_MEMBER)
+                .build());
+  }
 
   @ExceptionHandler(DuplicateEmailException.class)
   public ResponseEntity<ErrorFormat> handleDuplicateEmail() {
