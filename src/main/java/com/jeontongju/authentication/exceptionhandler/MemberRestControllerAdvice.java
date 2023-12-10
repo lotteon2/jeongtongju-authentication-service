@@ -1,10 +1,7 @@
 package com.jeontongju.authentication.exceptionhandler;
 
 import com.jeontongju.authentication.dto.ErrorFormat;
-import com.jeontongju.authentication.exception.DuplicateEmailException;
-import com.jeontongju.authentication.exception.ExpiredRefreshTokenException;
-import com.jeontongju.authentication.exception.MalformedRefreshTokenException;
-import com.jeontongju.authentication.exception.NotValidRefreshTokenException;
+import com.jeontongju.authentication.exception.*;
 import com.jeontongju.authentication.utils.CustomErrMessage;
 import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
@@ -45,5 +42,19 @@ public class MemberRestControllerAdvice extends ResponseEntityExceptionHandler {
 
     response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
     response.setHeader("Location", "https://test-jeontongju-jumo.netlify.app/");
+  }
+
+  @ExceptionHandler(NotCorrespondPassword.class)
+  public ResponseEntity<ErrorFormat> handleNotCorrespondPassword() {
+
+    HttpStatus status = HttpStatus.BAD_REQUEST;
+
+    return ResponseEntity.status(status)
+        .body(
+            ErrorFormat.builder()
+                .code(status.value())
+                .message(status.name())
+                .detail(CustomErrMessage.NOT_CORRESPOND_ORIGIN_PASSWORD)
+                .build());
   }
 }

@@ -42,12 +42,20 @@ public class SecurityConfig {
     http.authorizeRequests(
         authz ->
             authz
+                .antMatchers("/api/password/auth")
+                .permitAll()
                 .antMatchers("/api/access-token")
                 .permitAll()
-                .antMatchers("/api/**/sign-up/**")
+                .antMatchers("/api/sign-up/email/auth")
+                .permitAll()
+                .antMatchers("/api/consumers/sign-up")
+                .permitAll()
+                .antMatchers("/api/sellers/sign-up")
                 .permitAll()
                 .antMatchers("/api/sign-in/**")
                 .permitAll()
+                .antMatchers("/**")
+                .hasAnyRole("CONSUMER", "SELLER", "ADMIN")
                 .anyRequest()
                 .authenticated());
 
