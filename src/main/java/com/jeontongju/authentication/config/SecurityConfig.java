@@ -1,9 +1,8 @@
 package com.jeontongju.authentication.config;
 
-import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
-
 import com.jeontongju.authentication.security.jwt.JwtAuthenticationProvider;
 import com.jeontongju.authentication.security.jwt.JwtTokenProvider;
+import com.jeontongju.authentication.security.jwt.filter.InitialAuthenticationFilter;
 import com.jeontongju.authentication.security.jwt.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -14,8 +13,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.CorsFilter;
+
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @Configuration
 @EnableWebSecurity
@@ -56,13 +57,9 @@ public class SecurityConfig {
                                 .permitAll()
                                 .antMatchers("/api/sellers/sign-up")
                                 .permitAll()
-                                .antMatchers("/api/sign-in")
-                                .permitAll()
                                 .antMatchers("/**")
                                 .hasAnyRole("CONSUMER", "SELLER", "ADMIN")
-                                .anyRequest()
-                                .authenticated());
-
+                                .anyRequest().authenticated());
         return http.build();
     }
 
@@ -72,10 +69,14 @@ public class SecurityConfig {
 
             AuthenticationManager authenticationManager =
                     http.getSharedObject(AuthenticationManager.class);
+
+            InitialAuthenticationFilter initialAuthenticationFilter = new InitialAuthenticationFilter();
+
             JwtAuthenticationFilter jwtAuthenticationFilter =
                     new JwtAuthenticationFilter(authenticationManager, jwtTokenProvider, redisTemplate);
-            // UsernamePasswordAuthenticationFilter 직전
-            http.addFilterAfter(jwtAuthenticationFilter, LogoutFilter.class)
+
+            http.addFilterBefore(initialAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                    .addFilterAfter(jwtAuthenticationFilter, InitialAuthenticationFilter.class)
                     .authenticationProvider(jwtAuthenticationProvider);
         }
     }
