@@ -156,10 +156,9 @@ public class MemberController {
 
   @PatchMapping("/password")
   public ResponseEntity<SuccessFormat<Void>> modifyPassword(
-      @RequestHeader Long memberId,
       @Valid @RequestBody PasswordForChangeRequestDto changeRequestDto) {
 
-    memberService.modifyPassword(memberId, changeRequestDto);
+    memberService.modifyPassword(changeRequestDto);
 
     return ResponseEntity.ok()
         .body(
