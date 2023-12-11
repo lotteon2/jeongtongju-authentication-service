@@ -126,6 +126,6 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
 
     objectMapper.writeValue(
         response.getWriter(),
-        new SuccessFormat<>(HttpStatus.OK.value(), HttpStatus.OK.name(), "일반 로그인 성공", jwtToken));
+        new SuccessFormat<>(HttpStatus.OK.value(), HttpStatus.OK.name(), "일반 로그인 성공", jwtAccessTokenResponse));
   }
 }
