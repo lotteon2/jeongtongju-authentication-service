@@ -26,6 +26,23 @@ public class MemberController {
 
   private final MemberService memberService;
 
+  @PostMapping("/email/auth")
+  public ResponseEntity<SuccessFormat<MailAuthCodeResponseDto>> sendEmailAuthForFind(
+      @Valid @RequestBody EmailInfoForAuthRequestDto authRequestDto)
+      throws MessagingException, UnsupportedEncodingException {
+
+    MailAuthCodeResponseDto mailAuthCodeResponseDto =
+        memberService.sendEmailAuthForFind(authRequestDto);
+    return ResponseEntity.ok()
+        .body(
+            SuccessFormat.<MailAuthCodeResponseDto>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("비밀번호 찾기시, 이메일 인증 번호 생성 성공")
+                .data(mailAuthCodeResponseDto)
+                .build());
+  }
+
   @PostMapping("/sign-up/email/auth")
   public ResponseEntity<SuccessFormat<MailAuthCodeResponseDto>> sendEmailAuthForSignUp(
       @Valid @RequestBody EmailInfoForAuthRequestDto emailInfoDto)
