@@ -46,6 +46,8 @@ public class SecurityConfig {
                 .permitAll()
                 .antMatchers("/api/access-token")
                 .permitAll()
+                .antMatchers("/api/email/auth")
+                .permitAll()
                 .antMatchers("/api/sign-up/email/auth")
                 .permitAll()
                 .antMatchers("/api/consumers/sign-up")
