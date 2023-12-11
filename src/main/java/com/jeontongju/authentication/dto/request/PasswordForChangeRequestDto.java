@@ -18,7 +18,7 @@ public class PasswordForChangeRequestDto {
 
     @NotNull private String email;
 
-    @NotNull private MemberRoleEnum memberRoleEnum;
+    @NotNull private MemberRoleEnum memberRole;
 
     @NotNull
     @Pattern(

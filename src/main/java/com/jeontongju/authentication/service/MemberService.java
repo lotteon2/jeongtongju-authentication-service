@@ -252,7 +252,7 @@ public class MemberService {
 
         Member foundMember =
                 memberRepository
-                        .findByUsernameAndMemberRoleEnum(changeRequestDto.getEmail(), changeRequestDto.getMemberRoleEnum())
+                        .findByUsernameAndMemberRoleEnum(changeRequestDto.getEmail(), changeRequestDto.getMemberRole())
                         .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
         foundMember.assignPassword(changeRequestDto.getNewPassword());
     }
