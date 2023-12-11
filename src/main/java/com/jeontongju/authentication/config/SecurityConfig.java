@@ -22,59 +22,61 @@ import org.springframework.web.filter.CorsFilter;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-  private final CorsFilter corsFilter;
-  private final JwtTokenProvider jwtTokenProvider;
-  private final JwtAuthenticationProvider jwtAuthenticationProvider;
-  private final RedisTemplate<String, String> redisTemplate;
+    private final CorsFilter corsFilter;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtAuthenticationProvider jwtAuthenticationProvider;
+    private final RedisTemplate<String, String> redisTemplate;
 
-  @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http.csrf()
-        .disable()
-        .formLogin()
-        .disable()
-        .httpBasic()
-        .disable()
-        .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(STATELESS));
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.csrf()
+                .disable()
+                .formLogin()
+                .disable()
+                .httpBasic()
+                .disable()
+                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(STATELESS));
 
-    http.addFilter(corsFilter).apply(new MyCustomDsl());
+        http.addFilter(corsFilter).apply(new MyCustomDsl());
 
-    http.authorizeRequests(
-        authz ->
-            authz
-                .antMatchers("/api/password/auth")
-                .permitAll()
-                .antMatchers("/api/access-token")
-                .permitAll()
-                .antMatchers("/api/email/auth")
-                .permitAll()
-                .antMatchers("/api/sign-up/email/auth")
-                .permitAll()
-                .antMatchers("/api/consumers/sign-up")
-                .permitAll()
-                .antMatchers("/api/sellers/sign-up")
-                .permitAll()
-                .antMatchers("/api/sign-in")
-                .permitAll()
-                .antMatchers("/**")
-                .hasAnyRole("CONSUMER", "SELLER", "ADMIN")
-                .anyRequest()
-                .authenticated());
+        http.authorizeRequests(
+                authz ->
+                        authz
+                                .antMatchers("/api/password")
+                                .permitAll()
+                                .antMatchers("/api/password/auth")
+                                .permitAll()
+                                .antMatchers("/api/access-token")
+                                .permitAll()
+                                .antMatchers("/api/email/auth")
+                                .permitAll()
+                                .antMatchers("/api/sign-up/email/auth")
+                                .permitAll()
+                                .antMatchers("/api/consumers/sign-up")
+                                .permitAll()
+                                .antMatchers("/api/sellers/sign-up")
+                                .permitAll()
+                                .antMatchers("/api/sign-in")
+                                .permitAll()
+                                .antMatchers("/**")
+                                .hasAnyRole("CONSUMER", "SELLER", "ADMIN")
+                                .anyRequest()
+                                .authenticated());
 
-    return http.build();
-  }
-
-  public class MyCustomDsl extends AbstractHttpConfigurer<MyCustomDsl, HttpSecurity> {
-    @Override
-    public void configure(HttpSecurity http) throws Exception {
-
-      AuthenticationManager authenticationManager =
-          http.getSharedObject(AuthenticationManager.class);
-      JwtAuthenticationFilter jwtAuthenticationFilter =
-          new JwtAuthenticationFilter(authenticationManager, jwtTokenProvider, redisTemplate);
-      // UsernamePasswordAuthenticationFilter 직전
-      http.addFilterAfter(jwtAuthenticationFilter, LogoutFilter.class)
-          .authenticationProvider(jwtAuthenticationProvider);
+        return http.build();
     }
-  }
+
+    public class MyCustomDsl extends AbstractHttpConfigurer<MyCustomDsl, HttpSecurity> {
+        @Override
+        public void configure(HttpSecurity http) throws Exception {
+
+            AuthenticationManager authenticationManager =
+                    http.getSharedObject(AuthenticationManager.class);
+            JwtAuthenticationFilter jwtAuthenticationFilter =
+                    new JwtAuthenticationFilter(authenticationManager, jwtTokenProvider, redisTemplate);
+            // UsernamePasswordAuthenticationFilter 직전
+            http.addFilterAfter(jwtAuthenticationFilter, LogoutFilter.class)
+                    .authenticationProvider(jwtAuthenticationProvider);
+        }
+    }
 }
