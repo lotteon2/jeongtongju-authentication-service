@@ -31,6 +31,7 @@ import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Optional;
 import javax.crypto.SecretKey;
 import javax.mail.MessagingException;
 import javax.persistence.EntityNotFoundException;
@@ -61,6 +62,21 @@ public class MemberService {
 
   @Value("${jwt.secret}")
   private String secret;
+
+  public MailAuthCodeResponseDto sendEmailAuthForFind(EmailInfoForAuthRequestDto authRequestDto)
+      throws MessagingException, UnsupportedEncodingException {
+
+    MemberRoleEnum memberRoleEnum =
+        authRequestDto.getMemberRole().equals("ROLE_CONSUMER")
+            ? MemberRoleEnum.ROLE_CONSUMER
+            : MemberRoleEnum.ROLE_SELLER;
+
+    memberRepository
+        .findByUsernameAndMemberRoleEnum(authRequestDto.getEmail(), memberRoleEnum)
+        .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+    MailInfoDto mailInfoDto = MailManager.sendAuthEmail(authRequestDto.getEmail());
+    return MailAuthCodeResponseDto.builder().authCode(mailInfoDto.getValidCode()).build();
+  }
 
   public MailAuthCodeResponseDto sendEmailAuthForSignUp(EmailInfoForAuthRequestDto authRequestDto)
       throws MessagingException, UnsupportedEncodingException {
