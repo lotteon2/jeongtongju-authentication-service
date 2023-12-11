@@ -11,10 +11,7 @@ import com.jeontongju.authentication.entity.Member;
 import com.jeontongju.authentication.entity.SnsAccount;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
 import com.jeontongju.authentication.enums.SnsTypeEnum;
-import com.jeontongju.authentication.exception.DuplicateEmailException;
-import com.jeontongju.authentication.exception.ExpiredRefreshTokenException;
-import com.jeontongju.authentication.exception.MalformedRefreshTokenException;
-import com.jeontongju.authentication.exception.NotValidRefreshTokenException;
+import com.jeontongju.authentication.exception.*;
 import com.jeontongju.authentication.mapper.MemberMapper;
 import com.jeontongju.authentication.repository.MemberRepository;
 import com.jeontongju.authentication.repository.SnsAccountRepository;
@@ -36,12 +33,15 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import javax.crypto.SecretKey;
 import javax.mail.MessagingException;
+import javax.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -201,14 +201,41 @@ public class MemberService {
 
     } catch (ExpiredJwtException e) {
       throw new ExpiredRefreshTokenException(CustomErrMessage.EXPIRED_REFRESH_TOKEN);
-    } catch (IllegalArgumentException | SignatureException | MalformedJwtException  e) {
+    } catch (IllegalArgumentException | SignatureException | MalformedJwtException e) {
       throw new NotValidRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN);
     }
   }
 
   private Claims checkValid(String jwt, SecretKey key)
-      throws IllegalArgumentException, ExpiredJwtException, SignatureException, MalformedJwtException {
+      throws IllegalArgumentException,
+          ExpiredJwtException,
+          SignatureException,
+          MalformedJwtException {
 
     return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwt).getBody();
+  }
+
+  public void confirmOriginPassword(Long memberId, PasswordForCheckRequestDto checkRequestDto) {
+
+    Member foundMember =
+        memberRepository
+            .findByMemberId(memberId)
+            .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+
+    String passwordInDB = foundMember.getPassword();
+    PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    if (!passwordEncoder.matches(checkRequestDto.getOriginalPassword(), passwordInDB)) {
+      throw new NotCorrespondPassword(CustomErrMessage.NOT_CORRESPOND_ORIGIN_PASSWORD);
+    }
+  }
+
+  @Transactional
+  public void modifyPassword(Long memberId, PasswordForChangeRequestDto changeRequestDto) {
+
+    Member foundMember =
+        memberRepository
+            .findByMemberId(memberId)
+            .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+    foundMember.assignPassword(changeRequestDto.getNewPassword());
   }
 }
