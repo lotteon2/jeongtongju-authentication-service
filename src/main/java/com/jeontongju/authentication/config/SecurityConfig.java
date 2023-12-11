@@ -57,6 +57,8 @@ public class SecurityConfig {
                                 .permitAll()
                                 .antMatchers("/api/sellers/sign-up")
                                 .permitAll()
+                                .antMatchers("/api/sign-in")
+                                .permitAll()
                                 .antMatchers("/**")
                                 .hasAnyRole("CONSUMER", "SELLER", "ADMIN")
                                 .anyRequest().authenticated());
