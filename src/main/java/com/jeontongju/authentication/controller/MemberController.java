@@ -121,7 +121,7 @@ public class MemberController {
                 .build());
   }
 
-  @GetMapping("/password/auth")
+  @PostMapping("/password/auth")
   public ResponseEntity<SuccessFormat<Void>> confirmOriginPassword(
       @RequestHeader Long memberId,
       @Valid @RequestBody PasswordForCheckRequestDto checkRequestDto) {
