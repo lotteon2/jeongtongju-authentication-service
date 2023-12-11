@@ -1,9 +1,7 @@
 package com.jeontongju.authentication.controller;
 
 import com.jeontongju.authentication.dto.SuccessFormat;
-import com.jeontongju.authentication.dto.request.ConsumerInfoForSignUpRequestDto;
-import com.jeontongju.authentication.dto.request.EmailInfoForAuthRequestDto;
-import com.jeontongju.authentication.dto.request.SellerInfoForSignUpRequestDto;
+import com.jeontongju.authentication.dto.request.*;
 import com.jeontongju.authentication.dto.response.JwtTokenResponse;
 import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
 import com.jeontongju.authentication.service.MemberService;
@@ -120,6 +118,38 @@ public class MemberController {
                 .message(HttpStatus.OK.name())
                 .detail("Access-Token 재발급 성공")
                 .data(jwtTokenResponse.getAccessToken())
+                .build());
+  }
+
+  @PostMapping("/password/auth")
+  public ResponseEntity<SuccessFormat<Void>> confirmOriginPassword(
+      @RequestHeader Long memberId,
+      @Valid @RequestBody PasswordForCheckRequestDto checkRequestDto) {
+
+    memberService.confirmOriginPassword(memberId, checkRequestDto);
+
+    return ResponseEntity.ok()
+        .body(
+            SuccessFormat.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("비밀번호 수정 - 현재 비밀번호 확인 성공")
+                .build());
+  }
+
+  @PatchMapping("/password")
+  public ResponseEntity<SuccessFormat<Void>> modifyPassword(
+      @RequestHeader Long memberId,
+      @Valid @RequestBody PasswordForChangeRequestDto changeRequestDto) {
+
+    memberService.modifyPassword(memberId, changeRequestDto);
+
+    return ResponseEntity.ok()
+        .body(
+            SuccessFormat.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("새 비밀번호로 변경 성공")
                 .build());
   }
 }
