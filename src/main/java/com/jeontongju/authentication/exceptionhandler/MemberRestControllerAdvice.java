@@ -36,7 +36,7 @@ public class MemberRestControllerAdvice extends ResponseEntityExceptionHandler {
   @ExceptionHandler(DuplicateEmailException.class)
   public ResponseEntity<ErrorFormat> handleDuplicateEmail() {
 
-    HttpStatus status = HttpStatus.BAD_REQUEST;
+    HttpStatus status = HttpStatus.OK;
 
     return ResponseEntity.status(status.value())
         .body(
