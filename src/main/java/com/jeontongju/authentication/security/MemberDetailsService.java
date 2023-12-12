@@ -3,9 +3,9 @@ package com.jeontongju.authentication.security;
 import com.jeontongju.authentication.entity.Member;
 import com.jeontongju.authentication.repository.MemberRepository;
 import com.jeontongju.authentication.utils.CustomErrMessage;
-import javax.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
@@ -24,7 +24,15 @@ public class MemberDetailsService implements UserDetailsService {
     Member member =
         memberRepository
             .findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException(CustomErrMessage.NOT_CORRESPOND_CREDENTIALS));
+            .orElseThrow(
+                () ->
+                    new AuthenticationException(CustomErrMessage.NOT_FOUND_MEMBER) {
+                      @Override
+                      public String getMessage() {
+                        return super.getMessage();
+                      }
+                    });
+
     return new MemberDetails(member);
   }
 }

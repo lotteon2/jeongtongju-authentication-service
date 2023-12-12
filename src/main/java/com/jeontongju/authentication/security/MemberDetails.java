@@ -56,6 +56,6 @@ public class MemberDetails implements UserDetails {
 
   @Override
   public boolean isEnabled() {
-    return false;
+    return !member.getIsDeleted();
   }
 }

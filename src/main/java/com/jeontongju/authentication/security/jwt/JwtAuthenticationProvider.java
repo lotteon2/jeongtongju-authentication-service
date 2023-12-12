@@ -3,6 +3,7 @@ package com.jeontongju.authentication.security.jwt;
 import com.jeontongju.authentication.security.MemberDetails;
 import com.jeontongju.authentication.security.MemberDetailsService;
 import com.jeontongju.authentication.security.jwt.token.JwtAuthenticationToken;
+import com.jeontongju.authentication.utils.CustomErrMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -37,13 +38,23 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
 
     MemberDetails memberDetails = memberDetailsService.loadUserByUsername(username);
 
+    // 탈퇴한 회원
+    if (!memberDetails.isEnabled()) {
+      throw new AuthenticationException(CustomErrMessage.DISABLED_MEMBER) {
+        @Override
+        public String getMessage() {
+          return super.getMessage();
+        }
+      };
+    }
+
     // 소비자 회원가입 페이지에서 온 요청은 셀러 로그인 불가, 반대도 불가
     if (!memberRole.equals(memberDetails.getMember().getMemberRoleEnum().name())) {
-      throw new BadCredentialsException("인증에 실패했습니다.");
+      throw new BadCredentialsException(CustomErrMessage.NOT_AUTHENTICATED);
     }
 
     if (!passwordEncoder.matches(password, memberDetails.getPassword())) {
-      throw new BadCredentialsException("인증에 실패했습니다.");
+      throw new BadCredentialsException(CustomErrMessage.NOT_CORRESPOND_CREDENTIALS);
     }
 
     return JwtAuthenticationToken.authenticated(

@@ -10,6 +10,7 @@ import com.jeontongju.authentication.security.jwt.JwtTokenProvider;
 import com.jeontongju.authentication.security.jwt.token.JwtAuthenticationToken;
 import java.io.IOException;
 import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -132,5 +133,15 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
             .detail("일반 로그인 성공")
             .data(jwtAccessTokenResponse)
             .build());
+  }
+
+  @Override
+  protected void unsuccessfulAuthentication(
+      HttpServletRequest request, HttpServletResponse response, AuthenticationException failed)
+      throws IOException, ServletException {
+
+    log.info(failed.getMessage());
+    response.setContentType("application/json");
+    response.sendError(HttpStatus.BAD_REQUEST.value(), failed.getMessage());
   }
 }
