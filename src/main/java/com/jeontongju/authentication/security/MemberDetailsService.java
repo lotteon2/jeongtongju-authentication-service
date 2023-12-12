@@ -24,7 +24,7 @@ public class MemberDetailsService implements UserDetailsService {
     Member member =
         memberRepository
             .findByUsername(username)
-            .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+            .orElseThrow(() -> new UsernameNotFoundException(CustomErrMessage.NOT_CORRESPOND_CREDENTIALS));
     return new MemberDetails(member);
   }
 }

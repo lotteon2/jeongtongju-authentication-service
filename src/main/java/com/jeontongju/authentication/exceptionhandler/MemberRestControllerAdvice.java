@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
@@ -18,6 +20,21 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class MemberRestControllerAdvice extends ResponseEntityExceptionHandler {
+
+  @ExceptionHandler({UsernameNotFoundException.class, BadCredentialsException.class})
+  public ResponseEntity<ErrorFormat> handleUsernamePasswordException() {
+
+    HttpStatus status = HttpStatus.UNAUTHORIZED;
+
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        .body(
+            ErrorFormat.builder()
+                .code(status.value())
+                .message(status.name())
+                .detail(CustomErrMessage.NOT_CORRESPOND_CREDENTIALS)
+                .failure("NOT_CORRESPOND_CREDENTIALS")
+                .build());
+  }
 
   @ExceptionHandler(EntityNotFoundException.class)
   public ResponseEntity<ErrorFormat> handleNotFoundEntity() {
@@ -53,10 +70,19 @@ public class MemberRestControllerAdvice extends ResponseEntityExceptionHandler {
     MalformedRefreshTokenException.class,
     NotValidRefreshTokenException.class
   })
-  public void handleNotValidRefreshToken(HttpServletResponse response) throws IOException {
+  public ResponseEntity<ErrorFormat> handleNotValidRefreshToken(HttpServletResponse response)
+      throws IOException {
 
-    response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
-    response.setHeader("Location", "https://test-jeontongju-jumo.netlify.app/");
+    HttpStatus status = HttpStatus.UNAUTHORIZED;
+
+    return ResponseEntity.status(status.value())
+        .body(
+            ErrorFormat.builder()
+                .code(status.value())
+                .message(status.name())
+                .detail(CustomErrMessage.NOT_VALID_REFRESH_TOKEN)
+                .failure("NOT_VALID_REFRESH_TOKEN")
+                .build());
   }
 
   @ExceptionHandler(NotCorrespondPassword.class)
