@@ -40,27 +40,7 @@ public class SecurityConfig {
 
     http.addFilter(corsFilter).apply(new MyCustomDsl());
 
-    http.authorizeRequests(
-        authz ->
-            authz
-                .antMatchers("/api/password")
-                .permitAll()
-                .antMatchers("/api/password/auth")
-                .permitAll()
-                .antMatchers("/api/access-token")
-                .permitAll()
-                .antMatchers("/api/email/auth")
-                .permitAll()
-                .antMatchers("/api/sign-up/email/auth")
-                .permitAll()
-                .antMatchers("/api/consumers/sign-up")
-                .permitAll()
-                .antMatchers("/api/sellers/sign-up")
-                .permitAll()
-                .antMatchers("/api/sign-in")
-                .permitAll()
-                .antMatchers("/**")
-                .hasAnyRole("CONSUMER", "SELLER", "ADMIN"));
+    http.authorizeRequests(authz -> authz.anyRequest().permitAll());
     return http.build();
   }
 

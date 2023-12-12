@@ -54,206 +54,218 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class MemberService {
 
-    private final MemberRepository memberRepository;
-    private final SnsAccountRepository snsAccountRepository;
-    private final ConsumerClientService consumerClientService;
-    private final SellerClientService sellerClientService;
-    private final MemberMapper memberMapper;
-    private final RedisTemplate<String, String> redisTemplate;
-    private final JwtTokenProvider jwtTokenProvider;
+  private final MemberRepository memberRepository;
+  private final SnsAccountRepository snsAccountRepository;
+  private final ConsumerClientService consumerClientService;
+  private final SellerClientService sellerClientService;
+  private final MemberMapper memberMapper;
+  private final RedisTemplate<String, String> redisTemplate;
+  private final JwtTokenProvider jwtTokenProvider;
 
-    @Value("${jwt.secret}")
-    private String secret;
+  @Value("${jwt.secret}")
+  private String secret;
 
-    public MailAuthCodeResponseDto sendEmailAuthForFind(EmailInfoForAuthRequestDto authRequestDto)
-            throws MessagingException, UnsupportedEncodingException {
+  public MailAuthCodeResponseDto sendEmailAuthForFind(EmailInfoForAuthRequestDto authRequestDto)
+      throws MessagingException, UnsupportedEncodingException {
 
-        MemberRoleEnum memberRoleEnum =
-                authRequestDto.getMemberRole().equals("ROLE_CONSUMER")
-                        ? MemberRoleEnum.ROLE_CONSUMER
-                        : MemberRoleEnum.ROLE_SELLER;
+    MemberRoleEnum memberRoleEnum =
+        authRequestDto.getMemberRole().equals("ROLE_CONSUMER")
+            ? MemberRoleEnum.ROLE_CONSUMER
+            : MemberRoleEnum.ROLE_SELLER;
 
+    memberRepository
+        .findByUsernameAndMemberRoleEnum(authRequestDto.getEmail(), memberRoleEnum)
+        .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+    MailInfoDto mailInfoDto = MailManager.sendAuthEmail(authRequestDto.getEmail());
+    return MailAuthCodeResponseDto.builder().authCode(mailInfoDto.getValidCode()).build();
+  }
+
+  public MailAuthCodeResponseDto sendEmailAuthForSignUp(EmailInfoForAuthRequestDto authRequestDto)
+      throws MessagingException, UnsupportedEncodingException {
+
+    // 이메일 + 역할 중복 체크
+    if (isUniqueKeyDuplicated(authRequestDto.getEmail(), authRequestDto.getMemberRole())) {
+      throw new DuplicateEmailException(CustomErrMessage.EMAIL_ALREADY_IN_USE);
+    }
+
+    MailInfoDto mailInfoDto = MailManager.sendAuthEmail(authRequestDto.getEmail());
+
+    return MailAuthCodeResponseDto.builder().authCode(mailInfoDto.getValidCode()).build();
+  }
+
+  @Transactional
+  public void signupForConsumer(ConsumerInfoForSignUpRequestDto signupRequestDto)
+      throws JSONException, IOException {
+
+    ImpAuthInfo impAuthInfo = Auth19Manager.authenticate19(signupRequestDto.getImpUid());
+
+    Member savedConsumer =
+        memberRepository.save(
+            memberMapper.toEntity(
+                signupRequestDto.getEmail(),
+                signupRequestDto.getPassword(),
+                MemberRoleEnum.ROLE_CONSUMER));
+
+    consumerClientService.createConsumerForSignup(
+        ConsumerInfoForCreateRequestDto.toDto(
+            savedConsumer.getMemberId(), savedConsumer.getUsername(), impAuthInfo));
+  }
+
+  @Transactional
+  public void signupForSeller(SellerInfoForSignUpRequestDto signUpRequestDto)
+      throws JSONException, IOException {
+
+    // 성인 인증
+    ImpAuthInfo impAuthInfo = Auth19Manager.authenticate19(signUpRequestDto.getImpUid());
+
+    Member savedSeller =
+        memberRepository.save(
+            memberMapper.toEntity(
+                signUpRequestDto.getEmail(),
+                signUpRequestDto.getPassword(),
+                MemberRoleEnum.ROLE_SELLER));
+
+    sellerClientService.createSellerForSignup(
+        SellerInfoForCreateRequestDto.toDto(
+            savedSeller.getMemberId(), signUpRequestDto, impAuthInfo));
+  }
+
+  private Boolean isUniqueKeyDuplicated(String email, String memberRole) {
+
+    Member foundMember = memberRepository.findByUsername(email).orElse(null);
+    return foundMember != null && foundMember.getMemberRoleEnum().toString().equals(memberRole);
+  }
+
+  @Transactional
+  public void signInForConsumerByKakao(String code) throws DuplicateEmailException {
+
+    KakaoOAuthInfo kakaoOAuthInfo = OAuth2Manager.authenticateByKakao(code);
+    String email = kakaoOAuthInfo.getKakao_account().getEmail();
+    if (isUniqueKeyDuplicated(email, MemberRoleEnum.ROLE_CONSUMER.name())) {
+      throw new DuplicateEmailException(CustomErrMessage.EMAIL_ALREADY_IN_USE);
+    }
+
+    Member savedMember =
+        memberRepository.save(memberMapper.toEntity(email, "", MemberRoleEnum.ROLE_CONSUMER));
+    snsAccountRepository.save(
+        SnsAccount.register(
+            SnsTypeEnum.KAKAO.name() + "_" + kakaoOAuthInfo.getId(),
+            SnsTypeEnum.KAKAO.name(),
+            savedMember));
+
+    consumerClientService.createConsumerForSignupBySns(
+        ConsumerInfoForCreateByKakaoRequestDto.toDto(
+            savedMember.getMemberId(),
+            email,
+            kakaoOAuthInfo.getKakao_account().getProfile().getProfile_image_url()));
+  }
+
+  @Transactional
+  public void signInForConsumerByGoogle(String code) {
+    GoogleOAuthInfo googleOAuthInfo = OAuth2Manager.authenticateByGoogle(code);
+    String email = googleOAuthInfo.getEmail();
+    if (isUniqueKeyDuplicated(email, MemberRoleEnum.ROLE_CONSUMER.name())) {
+      throw new DuplicateEmailException(CustomErrMessage.EMAIL_ALREADY_IN_USE);
+    }
+
+    Member savedMember =
+        memberRepository.save(memberMapper.toEntity(email, "", MemberRoleEnum.ROLE_CONSUMER));
+    snsAccountRepository.save(
+        SnsAccount.register(
+            SnsTypeEnum.GOOGLE.name() + "_" + googleOAuthInfo.getId(),
+            SnsTypeEnum.GOOGLE.name(),
+            savedMember));
+
+    consumerClientService.createConsumerForSignupBySns(
+        ConsumerInfoForCreateByKakaoRequestDto.toDto(
+            savedMember.getMemberId(), email, googleOAuthInfo.getPicture()));
+  }
+
+  public JwtTokenResponse renewAccessTokenByRefreshToken(String refreshToken) {
+
+    ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();
+
+    byte[] keyBytes = Decoders.BASE64.decode(secret);
+    SecretKey key = Keys.hmacShaKeyFor(keyBytes);
+
+    try {
+      Claims claims = checkValid(refreshToken, key);
+      String memberId = claims.get("memberId", String.class);
+      Member member =
+          memberRepository
+              .findByMemberId(Long.parseLong(memberId))
+              .orElseThrow(
+                  () ->
+                      new MalformedRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN));
+      String refreshKey = member.getMemberRoleEnum().name() + "_" + member.getUsername();
+      String refreshTokenInRedis = stringStringValueOperations.get(refreshKey);
+
+      // refreshtoken이 탈취되었을 가능성이 있을지 확인
+      if (!refreshToken.equals(refreshTokenInRedis)) {
+        // 다르면 탈취된 것으로 판단
+        redisTemplate.delete(refreshKey);
+        throw new MalformedRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN);
+      }
+
+      // Refresh Token Rotation 전략, access token 과 함께 refresh token 갱신
+      String renewedAccessToken = jwtTokenProvider.recreateToken(member);
+      String renewedRefreshToken = jwtTokenProvider.createRefreshToken(Long.parseLong(memberId));
+      stringStringValueOperations.set(refreshKey, renewedRefreshToken);
+
+      return JwtTokenResponse.builder()
+          .accessToken(renewedAccessToken)
+          .refreshToken(renewedRefreshToken)
+          .build();
+
+    } catch (ExpiredJwtException e) {
+      throw new ExpiredRefreshTokenException(CustomErrMessage.EXPIRED_REFRESH_TOKEN);
+    } catch (IllegalArgumentException | SignatureException | MalformedJwtException e) {
+      throw new NotValidRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN);
+    }
+  }
+
+  private Claims checkValid(String jwt, SecretKey key)
+      throws IllegalArgumentException,
+          ExpiredJwtException,
+          SignatureException,
+          MalformedJwtException {
+
+    return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwt).getBody();
+  }
+
+  public void confirmOriginPassword(Long memberId, PasswordForCheckRequestDto checkRequestDto) {
+
+    Member foundMember =
         memberRepository
-                .findByUsernameAndMemberRoleEnum(authRequestDto.getEmail(), memberRoleEnum)
-                .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
-        MailInfoDto mailInfoDto = MailManager.sendAuthEmail(authRequestDto.getEmail());
-        return MailAuthCodeResponseDto.builder().authCode(mailInfoDto.getValidCode()).build();
+            .findByMemberId(memberId)
+            .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+
+    String passwordInDB = foundMember.getPassword();
+    PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    if (!passwordEncoder.matches(checkRequestDto.getOriginalPassword(), passwordInDB)) {
+      throw new NotCorrespondPassword(CustomErrMessage.NOT_CORRESPOND_ORIGIN_PASSWORD);
     }
+  }
 
-    public MailAuthCodeResponseDto sendEmailAuthForSignUp(EmailInfoForAuthRequestDto authRequestDto)
-            throws MessagingException, UnsupportedEncodingException {
+  @Transactional
+  public void modifyPassword(PasswordForChangeRequestDto changeRequestDto) {
 
-        // 이메일 + 역할 중복 체크
-        if (isUniqueKeyDuplicated(authRequestDto.getEmail(), authRequestDto.getMemberRole())) {
-            throw new DuplicateEmailException(CustomErrMessage.EMAIL_ALREADY_IN_USE);
-        }
+    Member foundMember =
+        memberRepository
+            .findByUsernameAndMemberRoleEnum(
+                changeRequestDto.getEmail(), changeRequestDto.getMemberRole())
+            .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+    foundMember.assignPassword(changeRequestDto.getNewPassword());
+  }
 
-        MailInfoDto mailInfoDto = MailManager.sendAuthEmail(authRequestDto.getEmail());
+  @Transactional
+  public void modifyPasswordForSimpleChange(
+      Long memberId, PasswordForSimpleChangeRequestDto simpleChangeRequestDto) {
 
-        return MailAuthCodeResponseDto.builder().authCode(mailInfoDto.getValidCode()).build();
-    }
-
-    @Transactional
-    public void signupForConsumer(ConsumerInfoForSignUpRequestDto signupRequestDto)
-            throws JSONException, IOException {
-
-        ImpAuthInfo impAuthInfo = Auth19Manager.authenticate19(signupRequestDto.getImpUid());
-
-        Member savedConsumer =
-                memberRepository.save(
-                        memberMapper.toEntity(
-                                signupRequestDto.getEmail(),
-                                signupRequestDto.getPassword(),
-                                MemberRoleEnum.ROLE_CONSUMER));
-
-        consumerClientService.createConsumerForSignup(
-                ConsumerInfoForCreateRequestDto.toDto(
-                        savedConsumer.getMemberId(), savedConsumer.getUsername(), impAuthInfo));
-    }
-
-    @Transactional
-    public void signupForSeller(SellerInfoForSignUpRequestDto signUpRequestDto)
-            throws JSONException, IOException {
-
-        // 성인 인증
-        ImpAuthInfo impAuthInfo = Auth19Manager.authenticate19(signUpRequestDto.getImpUid());
-
-        Member savedSeller =
-                memberRepository.save(
-                        memberMapper.toEntity(
-                                signUpRequestDto.getEmail(),
-                                signUpRequestDto.getPassword(),
-                                MemberRoleEnum.ROLE_SELLER));
-
-        sellerClientService.createSellerForSignup(
-                SellerInfoForCreateRequestDto.toDto(
-                        savedSeller.getMemberId(), signUpRequestDto, impAuthInfo));
-    }
-
-    private Boolean isUniqueKeyDuplicated(String email, String memberRole) {
-
-        Member foundMember = memberRepository.findByUsername(email).orElse(null);
-        return foundMember != null && foundMember.getMemberRoleEnum().toString().equals(memberRole);
-    }
-
-    @Transactional
-    public void signInForConsumerByKakao(String code) throws DuplicateEmailException {
-
-        KakaoOAuthInfo kakaoOAuthInfo = OAuth2Manager.authenticateByKakao(code);
-        String email = kakaoOAuthInfo.getKakao_account().getEmail();
-        if (isUniqueKeyDuplicated(email, MemberRoleEnum.ROLE_CONSUMER.name())) {
-            throw new DuplicateEmailException(CustomErrMessage.EMAIL_ALREADY_IN_USE);
-        }
-
-        Member savedMember =
-                memberRepository.save(memberMapper.toEntity(email, "", MemberRoleEnum.ROLE_CONSUMER));
-        snsAccountRepository.save(
-                SnsAccount.register(
-                        SnsTypeEnum.KAKAO.name() + "_" + kakaoOAuthInfo.getId(),
-                        SnsTypeEnum.KAKAO.name(),
-                        savedMember));
-
-        consumerClientService.createConsumerForSignupBySns(
-                ConsumerInfoForCreateByKakaoRequestDto.toDto(
-                        savedMember.getMemberId(),
-                        email,
-                        kakaoOAuthInfo.getKakao_account().getProfile().getProfile_image_url()));
-    }
-
-    @Transactional
-    public void signInForConsumerByGoogle(String code) {
-        GoogleOAuthInfo googleOAuthInfo = OAuth2Manager.authenticateByGoogle(code);
-        String email = googleOAuthInfo.getEmail();
-        if (isUniqueKeyDuplicated(email, MemberRoleEnum.ROLE_CONSUMER.name())) {
-            throw new DuplicateEmailException(CustomErrMessage.EMAIL_ALREADY_IN_USE);
-        }
-
-        Member savedMember =
-                memberRepository.save(memberMapper.toEntity(email, "", MemberRoleEnum.ROLE_CONSUMER));
-        snsAccountRepository.save(
-                SnsAccount.register(
-                        SnsTypeEnum.GOOGLE.name() + "_" + googleOAuthInfo.getId(),
-                        SnsTypeEnum.GOOGLE.name(),
-                        savedMember));
-
-        consumerClientService.createConsumerForSignupBySns(
-                ConsumerInfoForCreateByKakaoRequestDto.toDto(
-                        savedMember.getMemberId(), email, googleOAuthInfo.getPicture()));
-    }
-
-    public JwtTokenResponse renewAccessTokenByRefreshToken(String refreshToken) {
-
-        ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();
-
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
-        SecretKey key = Keys.hmacShaKeyFor(keyBytes);
-
-        try {
-            Claims claims = checkValid(refreshToken, key);
-            String memberId = claims.get("memberId", String.class);
-            Member member =
-                    memberRepository
-                            .findByMemberId(Long.parseLong(memberId))
-                            .orElseThrow(
-                                    () ->
-                                            new MalformedRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN));
-            String refreshKey = member.getMemberRoleEnum().name() + "_" + member.getUsername();
-            String refreshTokenInRedis = stringStringValueOperations.get(refreshKey);
-
-            // refreshtoken이 탈취되었을 가능성이 있을지 확인
-            if (!refreshToken.equals(refreshTokenInRedis)) {
-                // 다르면 탈취된 것으로 판단
-                redisTemplate.delete(refreshKey);
-                throw new MalformedRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN);
-            }
-
-            // Refresh Token Rotation 전략, access token 과 함께 refresh token 갱신
-            String renewedAccessToken = jwtTokenProvider.recreateToken(member);
-            String renewedRefreshToken = jwtTokenProvider.createRefreshToken(Long.parseLong(memberId));
-            stringStringValueOperations.set(refreshKey, renewedRefreshToken);
-
-            return JwtTokenResponse.builder()
-                    .accessToken(renewedAccessToken)
-                    .refreshToken(renewedRefreshToken)
-                    .build();
-
-        } catch (ExpiredJwtException e) {
-            throw new ExpiredRefreshTokenException(CustomErrMessage.EXPIRED_REFRESH_TOKEN);
-        } catch (IllegalArgumentException | SignatureException | MalformedJwtException e) {
-            throw new NotValidRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN);
-        }
-    }
-
-    private Claims checkValid(String jwt, SecretKey key)
-            throws IllegalArgumentException,
-            ExpiredJwtException,
-            SignatureException,
-            MalformedJwtException {
-
-        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwt).getBody();
-    }
-
-    public void confirmOriginPassword(Long memberId, PasswordForCheckRequestDto checkRequestDto) {
-
-        Member foundMember =
-                memberRepository
-                        .findByMemberId(memberId)
-                        .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
-
-        String passwordInDB = foundMember.getPassword();
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        if (!passwordEncoder.matches(checkRequestDto.getOriginalPassword(), passwordInDB)) {
-            throw new NotCorrespondPassword(CustomErrMessage.NOT_CORRESPOND_ORIGIN_PASSWORD);
-        }
-    }
-
-    @Transactional
-    public void modifyPassword(PasswordForChangeRequestDto changeRequestDto) {
-
-        Member foundMember =
-                memberRepository
-                        .findByUsernameAndMemberRoleEnum(changeRequestDto.getEmail(), changeRequestDto.getMemberRole())
-                        .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
-        foundMember.assignPassword(changeRequestDto.getNewPassword());
-    }
+    Member foundMember =
+        memberRepository
+            .findByMemberId(memberId)
+            .orElseThrow(() -> new ConsumerNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+    foundMember.assignPassword(simpleChangeRequestDto.getNewPassword());
+  }
 }

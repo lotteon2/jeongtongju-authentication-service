@@ -165,7 +165,22 @@ public class MemberController {
             SuccessFormat.<Void>builder()
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
-                .detail("새 비밀번호로 변경 성공")
+                .detail("비밀번호 찾기 시, 새 비밀번호로 변경 성공")
+                .build());
+  }
+
+  @PatchMapping("/password/change")
+  public ResponseEntity<SuccessFormat<Void>> modifyPasswordForSimpleChange(
+      @RequestHeader Long memberId,
+      @Valid @RequestBody PasswordForSimpleChangeRequestDto simpleChangeRequestDto) {
+
+    memberService.modifyPasswordForSimpleChange(memberId, simpleChangeRequestDto);
+    return ResponseEntity.ok()
+        .body(
+            SuccessFormat.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("비밀번호 변경 시, 새 비밀번호로 변경 성공")
                 .build());
   }
 }
