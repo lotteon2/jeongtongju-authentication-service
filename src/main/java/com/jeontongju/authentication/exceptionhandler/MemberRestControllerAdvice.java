@@ -1,6 +1,6 @@
 package com.jeontongju.authentication.exceptionhandler;
 
-import com.jeontongju.authentication.dto.ErrorFormat;
+import com.jeontongju.authentication.dto.ResponseFormat;
 import com.jeontongju.authentication.exception.*;
 import com.jeontongju.authentication.utils.CustomErrMessage;
 import java.io.IOException;
@@ -22,13 +22,13 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class MemberRestControllerAdvice extends ResponseEntityExceptionHandler {
 
   @ExceptionHandler({UsernameNotFoundException.class, BadCredentialsException.class})
-  public ResponseEntity<ErrorFormat> handleUsernamePasswordException() {
+  public ResponseEntity<ResponseFormat<Void>> handleUsernamePasswordException() {
 
-    HttpStatus status = HttpStatus.UNAUTHORIZED;
+    HttpStatus status = HttpStatus.BAD_REQUEST;
 
-    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
         .body(
-            ErrorFormat.builder()
+            ResponseFormat.<Void>builder()
                 .code(status.value())
                 .message(status.name())
                 .detail(CustomErrMessage.NOT_CORRESPOND_CREDENTIALS)
@@ -37,13 +37,13 @@ public class MemberRestControllerAdvice extends ResponseEntityExceptionHandler {
   }
 
   @ExceptionHandler(EntityNotFoundException.class)
-  public ResponseEntity<ErrorFormat> handleNotFoundEntity() {
+  public ResponseEntity<ResponseFormat<Void>> handleNotFoundEntity() {
 
     HttpStatus status = HttpStatus.BAD_REQUEST;
 
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
         .body(
-            ErrorFormat.builder()
+            ResponseFormat.<Void>builder()
                 .code(status.value())
                 .message(status.name())
                 .detail(CustomErrMessage.NOT_FOUND_MEMBER)
@@ -51,13 +51,13 @@ public class MemberRestControllerAdvice extends ResponseEntityExceptionHandler {
   }
 
   @ExceptionHandler(DuplicateEmailException.class)
-  public ResponseEntity<ErrorFormat> handleDuplicateEmail() {
+  public ResponseEntity<ResponseFormat<Void>> handleDuplicateEmail() {
 
     HttpStatus status = HttpStatus.OK;
 
     return ResponseEntity.status(status.value())
         .body(
-            ErrorFormat.builder()
+            ResponseFormat.<Void>builder()
                 .code(status.value())
                 .message(status.name())
                 .detail(CustomErrMessage.EMAIL_ALREADY_IN_USE)
@@ -70,14 +70,14 @@ public class MemberRestControllerAdvice extends ResponseEntityExceptionHandler {
     MalformedRefreshTokenException.class,
     NotValidRefreshTokenException.class
   })
-  public ResponseEntity<ErrorFormat> handleNotValidRefreshToken(HttpServletResponse response)
-      throws IOException {
+  public ResponseEntity<ResponseFormat<Void>> handleNotValidRefreshToken(
+      HttpServletResponse response) throws IOException {
 
     HttpStatus status = HttpStatus.UNAUTHORIZED;
 
     return ResponseEntity.status(status.value())
         .body(
-            ErrorFormat.builder()
+            ResponseFormat.<Void>builder()
                 .code(status.value())
                 .message(status.name())
                 .detail(CustomErrMessage.NOT_VALID_REFRESH_TOKEN)
@@ -86,13 +86,13 @@ public class MemberRestControllerAdvice extends ResponseEntityExceptionHandler {
   }
 
   @ExceptionHandler(NotCorrespondPassword.class)
-  public ResponseEntity<ErrorFormat> handleNotCorrespondPassword() {
+  public ResponseEntity<ResponseFormat<Void>> handleNotCorrespondPassword() {
 
     HttpStatus status = HttpStatus.BAD_REQUEST;
 
     return ResponseEntity.status(status)
         .body(
-            ErrorFormat.builder()
+            ResponseFormat.<Void>builder()
                 .code(status.value())
                 .message(status.name())
                 .detail(CustomErrMessage.NOT_CORRESPOND_ORIGIN_PASSWORD)

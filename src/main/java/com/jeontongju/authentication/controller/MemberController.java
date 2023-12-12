@@ -1,6 +1,6 @@
 package com.jeontongju.authentication.controller;
 
-import com.jeontongju.authentication.dto.SuccessFormat;
+import com.jeontongju.authentication.dto.ResponseFormat;
 import com.jeontongju.authentication.dto.request.*;
 import com.jeontongju.authentication.dto.response.JwtTokenResponse;
 import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
@@ -27,7 +27,7 @@ public class MemberController {
   private final MemberService memberService;
 
   @PostMapping("/email/auth")
-  public ResponseEntity<SuccessFormat<MailAuthCodeResponseDto>> sendEmailAuthForFind(
+  public ResponseEntity<ResponseFormat<MailAuthCodeResponseDto>> sendEmailAuthForFind(
       @Valid @RequestBody EmailInfoForAuthRequestDto authRequestDto)
       throws MessagingException, UnsupportedEncodingException {
 
@@ -35,7 +35,7 @@ public class MemberController {
         memberService.sendEmailAuthForFind(authRequestDto);
     return ResponseEntity.ok()
         .body(
-            SuccessFormat.<MailAuthCodeResponseDto>builder()
+            ResponseFormat.<MailAuthCodeResponseDto>builder()
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("비밀번호 찾기시, 이메일 인증 번호 생성 성공")
@@ -44,7 +44,7 @@ public class MemberController {
   }
 
   @PostMapping("/sign-up/email/auth")
-  public ResponseEntity<SuccessFormat<MailAuthCodeResponseDto>> sendEmailAuthForSignUp(
+  public ResponseEntity<ResponseFormat<MailAuthCodeResponseDto>> sendEmailAuthForSignUp(
       @Valid @RequestBody EmailInfoForAuthRequestDto emailInfoDto)
       throws MessagingException, UnsupportedEncodingException {
 
@@ -52,7 +52,7 @@ public class MemberController {
         memberService.sendEmailAuthForSignUp(emailInfoDto);
     return ResponseEntity.ok()
         .body(
-            SuccessFormat.<MailAuthCodeResponseDto>builder()
+            ResponseFormat.<MailAuthCodeResponseDto>builder()
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("회원 가입 시, 중복 회원 및 이메일 인증 번호 생성 성공")
@@ -61,7 +61,7 @@ public class MemberController {
   }
 
   @PostMapping("/consumers/sign-up")
-  public ResponseEntity<SuccessFormat<Void>> signupForConsumer(
+  public ResponseEntity<ResponseFormat<Void>> signupForConsumer(
       @Valid @RequestBody ConsumerInfoForSignUpRequestDto signupRequestDto)
       throws JSONException, IOException {
 
@@ -69,7 +69,7 @@ public class MemberController {
 
     return ResponseEntity.ok()
         .body(
-            SuccessFormat.<Void>builder()
+            ResponseFormat.<Void>builder()
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("소비자 일반 회원가입 성공")
@@ -77,7 +77,7 @@ public class MemberController {
   }
 
   @PostMapping("/sellers/sign-up")
-  public ResponseEntity<SuccessFormat<Void>> signupForSeller(
+  public ResponseEntity<ResponseFormat<Void>> signupForSeller(
       @Valid @RequestBody SellerInfoForSignUpRequestDto signUpRequestDto)
       throws JSONException, IOException {
 
@@ -85,7 +85,7 @@ public class MemberController {
 
     return ResponseEntity.ok()
         .body(
-            SuccessFormat.<Void>builder()
+            ResponseFormat.<Void>builder()
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("셀러 회원가입 성공")
@@ -93,13 +93,13 @@ public class MemberController {
   }
 
   @GetMapping("/sign-in/oauth2/code/kakao")
-  public ResponseEntity<SuccessFormat<Void>> signInForConsumerBySns(
+  public ResponseEntity<ResponseFormat<Void>> signInForConsumerBySns(
       @RequestParam("code") String code) {
 
     memberService.signInForConsumerByKakao(code);
     return ResponseEntity.ok()
         .body(
-            SuccessFormat.<Void>builder()
+            ResponseFormat.<Void>builder()
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("소비자 소셜 로그인 성공 - KAKAO")
@@ -107,13 +107,13 @@ public class MemberController {
   }
 
   @GetMapping("/sign-in/oauth2/code/google")
-  public ResponseEntity<SuccessFormat<Void>> signInForConsumerByGoogle(
+  public ResponseEntity<ResponseFormat<Void>> signInForConsumerByGoogle(
       @RequestParam("code") String code) {
 
     memberService.signInForConsumerByGoogle(code);
     return ResponseEntity.ok()
         .body(
-            SuccessFormat.<Void>builder()
+            ResponseFormat.<Void>builder()
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("소비자 소셜 로그인 성공 - GOOGLE")
@@ -121,7 +121,7 @@ public class MemberController {
   }
 
   @PutMapping("/access-token")
-  public ResponseEntity<SuccessFormat<String>> issueAccessTokenByRefreshToken(
+  public ResponseEntity<ResponseFormat<String>> issueAccessTokenByRefreshToken(
       @CookieValue("refreshToken") String refreshToken, HttpServletResponse response) {
 
     JwtTokenResponse jwtTokenResponse = memberService.renewAccessTokenByRefreshToken(refreshToken);
@@ -130,7 +130,7 @@ public class MemberController {
     response.addCookie(cookie);
     return ResponseEntity.ok()
         .body(
-            SuccessFormat.<String>builder()
+            ResponseFormat.<String>builder()
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("Access-Token 재발급 성공")
@@ -139,7 +139,7 @@ public class MemberController {
   }
 
   @PostMapping("/password/auth")
-  public ResponseEntity<SuccessFormat<Void>> confirmOriginPassword(
+  public ResponseEntity<ResponseFormat<Void>> confirmOriginPassword(
       @RequestHeader Long memberId,
       @Valid @RequestBody PasswordForCheckRequestDto checkRequestDto) {
 
@@ -147,7 +147,7 @@ public class MemberController {
 
     return ResponseEntity.ok()
         .body(
-            SuccessFormat.<Void>builder()
+            ResponseFormat.<Void>builder()
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("비밀번호 수정 - 현재 비밀번호 확인 성공")
@@ -155,14 +155,14 @@ public class MemberController {
   }
 
   @PatchMapping("/password")
-  public ResponseEntity<SuccessFormat<Void>> modifyPassword(
+  public ResponseEntity<ResponseFormat<Void>> modifyPassword(
       @Valid @RequestBody PasswordForChangeRequestDto changeRequestDto) {
 
     memberService.modifyPassword(changeRequestDto);
 
     return ResponseEntity.ok()
         .body(
-            SuccessFormat.<Void>builder()
+            ResponseFormat.<Void>builder()
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("비밀번호 찾기 시, 새 비밀번호로 변경 성공")
@@ -170,14 +170,14 @@ public class MemberController {
   }
 
   @PatchMapping("/password/change")
-  public ResponseEntity<SuccessFormat<Void>> modifyPasswordForSimpleChange(
+  public ResponseEntity<ResponseFormat<Void>> modifyPasswordForSimpleChange(
       @RequestHeader Long memberId,
       @Valid @RequestBody PasswordForSimpleChangeRequestDto simpleChangeRequestDto) {
 
     memberService.modifyPasswordForSimpleChange(memberId, simpleChangeRequestDto);
     return ResponseEntity.ok()
         .body(
-            SuccessFormat.<Void>builder()
+            ResponseFormat.<Void>builder()
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("비밀번호 변경 시, 새 비밀번호로 변경 성공")
