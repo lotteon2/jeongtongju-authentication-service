@@ -1,6 +1,7 @@
 package com.jeontongju.authentication.security;
 
 import com.jeontongju.authentication.entity.Member;
+import com.jeontongju.authentication.enums.MemberRoleEnum;
 import com.jeontongju.authentication.repository.MemberRepository;
 import com.jeontongju.authentication.utils.CustomErrMessage;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class MemberDetailsService implements UserDetailsService {
 
+  private MemberRoleEnum memberRole;
   private final MemberRepository memberRepository;
 
   @Override
@@ -23,7 +25,7 @@ public class MemberDetailsService implements UserDetailsService {
     log.info("MemberDetailsService's loadUserByUsername executes");
     Member member =
         memberRepository
-            .findByUsername(username)
+            .findByUsernameAndMemberRoleEnum(username, memberRole)
             .orElseThrow(
                 () ->
                     new AuthenticationException(CustomErrMessage.NOT_FOUND_MEMBER) {
@@ -34,5 +36,9 @@ public class MemberDetailsService implements UserDetailsService {
                     });
 
     return new MemberDetails(member);
+  }
+
+  public void assignMemberRole(MemberRoleEnum memberRole) {
+    this.memberRole = memberRole;
   }
 }
