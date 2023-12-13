@@ -27,4 +27,6 @@ public class ConsumerInfoForSignUpRequestDto {
   private String password;
 
   @NotNull private String impUid;
+
+  @NotNull private Boolean isMerge;
 }
