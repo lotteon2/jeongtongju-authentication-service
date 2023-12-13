@@ -43,9 +43,6 @@ public class SecurityConfig {
         .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(STATELESS));
 
     http.oauth2Login()
-        .redirectionEndpoint()
-        .baseUri("/login/oauth2/code/kakao")
-        .and()
         .userInfoEndpoint()
         .userService(memberOAuth2UserService)
         .and()

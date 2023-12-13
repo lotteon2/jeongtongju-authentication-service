@@ -15,6 +15,7 @@ import com.jeontongju.authentication.security.MemberDetails;
 import com.jeontongju.authentication.service.feign.consumer.ConsumerClientService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -52,7 +53,7 @@ public class MemberOAuth2UserService extends DefaultOAuth2UserService {
     if (oauthType.equals("KAKAO")) {
       oAuth2UserInfo = new KakaoUserInfo(oAuth2User.getAttributes(), oauthId);
     } else if (oauthType.equals("GOOGLE")) {
-      oAuth2UserInfo = new GoogleUserInfo(oAuth2User.getAttributes());
+      oAuth2UserInfo = new GoogleUserInfo(oAuth2User.getAttributes(), oauthId);
     } else {
       throw new RuntimeException();
     }
@@ -62,26 +63,44 @@ public class MemberOAuth2UserService extends DefaultOAuth2UserService {
 
       switch (oauthType) {
         case "KAKAO":
-          String email = oAuth2UserInfo.getEmail();
-          String id = oAuth2UserInfo.getProviderId();
-          String profileImageUrl = oAuth2UserInfo.getProfileImageUrl();
+          String kakaoEmail = oAuth2UserInfo.getEmail();
+          String kakaoId = oAuth2UserInfo.getProviderId();
+          String kakaoProfileImageUrl = oAuth2UserInfo.getProfileImageUrl();
 
           member =
-              memberRepository.save(memberMapper.toEntity(email, "", MemberRoleEnum.ROLE_CONSUMER));
-          snsAccountRepository.save(
-              snsAccountMapper.toEntity(
-                  SnsTypeEnum.KAKAO.name() + "_" + id, SnsTypeEnum.KAKAO.name(), member));
-
-          consumerClientService.createConsumerForSignupBySns(
-              ConsumerInfoForCreateBySnsRequestDto.toDto(
-                  member.getMemberId(), member.getUsername(), profileImageUrl));
+              registerMemberFromSns(kakaoEmail, SnsTypeEnum.KAKAO, kakaoId, kakaoProfileImageUrl);
           break;
+
+        case "GOOGLE":
+          String googleEmail = oAuth2UserInfo.getEmail();
+          String googleId = oAuth2UserInfo.getProviderId();
+          String googleProfileImageUrl = oAuth2UserInfo.getProfileImageUrl();
+
+          member =
+              registerMemberFromSns(
+                  googleEmail, SnsTypeEnum.GOOGLE, googleId, googleProfileImageUrl);
       }
     } else {
 
     }
 
     return new MemberDetails(member, oAuth2User.getAttributes());
+  }
+
+  @NotNull
+  private Member registerMemberFromSns(
+      String email, SnsTypeEnum snsTypeEnum, String snsUniqueId, String profileImageUrl) {
+
+    Member savedMember =
+        memberRepository.save(memberMapper.toEntity(email, "", MemberRoleEnum.ROLE_CONSUMER));
+
+    snsAccountRepository.save(
+        snsAccountMapper.toEntity(snsTypeEnum.name() + "_" + snsUniqueId, snsTypeEnum.name(), savedMember));
+
+    consumerClientService.createConsumerForSignupBySns(
+        ConsumerInfoForCreateBySnsRequestDto.toDto(
+            savedMember.getMemberId(), savedMember.getUsername(), profileImageUrl));
+    return savedMember;
   }
 
   private boolean isNew(String oauthType, String oauthId) {

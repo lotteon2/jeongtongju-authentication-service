@@ -7,15 +7,17 @@ import java.util.Map;
 
 public class GoogleUserInfo implements OAuth2UserInfo {
 
+  private String oauthId;
   private Map<String, Object> attributes;
 
-  public GoogleUserInfo(Map<String, Object> attributes) {
+  public GoogleUserInfo(Map<String, Object> attributes, String oauthId) {
     this.attributes = attributes;
+    this.oauthId = oauthId;
   }
 
   @Override
   public String getProviderId() {
-    return null;
+    return this.oauthId;
   }
 
   @Override
@@ -25,11 +27,13 @@ public class GoogleUserInfo implements OAuth2UserInfo {
 
   @Override
   public String getEmail() {
-    return null;
+
+    return (String) attributes.get("email");
   }
 
   @Override
   public String getProfileImageUrl() {
-    return null;
+
+    return (String) attributes.get("picture");
   }
 }
