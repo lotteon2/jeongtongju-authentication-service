@@ -29,12 +29,13 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.Optional;
 import javax.crypto.SecretKey;
 import javax.mail.MessagingException;
 import javax.persistence.EntityNotFoundException;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
@@ -152,7 +153,7 @@ public class MemberService {
             savedMember));
 
     consumerClientService.createConsumerForSignupBySns(
-        ConsumerInfoForCreateByKakaoRequestDto.toDto(
+        ConsumerInfoForCreateBySnsRequestDto.toDto(
             savedMember.getMemberId(),
             email,
             kakaoOAuthInfo.getKakao_account().getProfile().getProfile_image_url()));
@@ -175,7 +176,7 @@ public class MemberService {
             savedMember));
 
     consumerClientService.createConsumerForSignupBySns(
-        ConsumerInfoForCreateByKakaoRequestDto.toDto(
+        ConsumerInfoForCreateBySnsRequestDto.toDto(
             savedMember.getMemberId(), email, googleOAuthInfo.getPicture()));
   }
 
@@ -246,12 +247,24 @@ public class MemberService {
   }
 
   @Transactional
-  public void modifyPassword(Long memberId, PasswordForChangeRequestDto changeRequestDto) {
+  public void modifyPassword(PasswordForChangeRequestDto changeRequestDto) {
+
+    Member foundMember =
+        memberRepository
+            .findByUsernameAndMemberRoleEnum(
+                changeRequestDto.getEmail(), changeRequestDto.getMemberRole())
+            .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+    foundMember.assignPassword(changeRequestDto.getNewPassword());
+  }
+
+  @Transactional
+  public void modifyPasswordForSimpleChange(
+      Long memberId, PasswordForSimpleChangeRequestDto simpleChangeRequestDto) {
 
     Member foundMember =
         memberRepository
             .findByMemberId(memberId)
-            .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
-    foundMember.assignPassword(changeRequestDto.getNewPassword());
+            .orElseThrow(() -> new ConsumerNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+    foundMember.assignPassword(simpleChangeRequestDto.getNewPassword());
   }
 }

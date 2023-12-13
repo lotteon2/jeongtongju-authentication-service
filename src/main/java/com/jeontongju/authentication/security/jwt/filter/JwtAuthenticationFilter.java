@@ -1,7 +1,7 @@
 package com.jeontongju.authentication.security.jwt.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jeontongju.authentication.dto.SuccessFormat;
+import com.jeontongju.authentication.dto.ResponseFormat;
 import com.jeontongju.authentication.dto.request.MemberInfoForSignInRequestDto;
 import com.jeontongju.authentication.dto.response.JwtAccessTokenResponse;
 import com.jeontongju.authentication.exception.DuplicateAuthenticationException;
@@ -10,6 +10,7 @@ import com.jeontongju.authentication.security.jwt.JwtTokenProvider;
 import com.jeontongju.authentication.security.jwt.token.JwtAuthenticationToken;
 import java.io.IOException;
 import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -96,7 +97,7 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
       Authentication authResult)
       throws IOException {
 
-    log.info("Successful sign-up!");
+    log.info("Successful sign-in!");
     String jwtToken = jwtTokenProvider.createToken(authResult);
     MemberDetails memberDetails = (MemberDetails) authResult.getPrincipal();
     String jwtRefreshToken =
@@ -126,6 +127,21 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
 
     objectMapper.writeValue(
         response.getWriter(),
-        new SuccessFormat<>(HttpStatus.OK.value(), HttpStatus.OK.name(), "일반 로그인 성공", jwtAccessTokenResponse));
+        ResponseFormat.<JwtAccessTokenResponse>builder()
+            .code(HttpStatus.OK.value())
+            .message(HttpStatus.OK.name())
+            .detail("일반 로그인 성공")
+            .data(jwtAccessTokenResponse)
+            .build());
+  }
+
+  @Override
+  protected void unsuccessfulAuthentication(
+      HttpServletRequest request, HttpServletResponse response, AuthenticationException failed)
+      throws IOException, ServletException {
+
+    log.info(failed.getMessage());
+    response.setContentType("application/json");
+    response.sendError(HttpStatus.BAD_REQUEST.value(), failed.getMessage());
   }
 }

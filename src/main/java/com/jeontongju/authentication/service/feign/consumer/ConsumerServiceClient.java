@@ -1,6 +1,6 @@
 package com.jeontongju.authentication.service.feign.consumer;
 
-import com.jeontongju.authentication.dto.request.ConsumerInfoForCreateByKakaoRequestDto;
+import com.jeontongju.authentication.dto.request.ConsumerInfoForCreateBySnsRequestDto;
 import com.jeontongju.authentication.dto.request.ConsumerInfoForCreateRequestDto;
 import com.jeontongju.authentication.dto.temp.FeignFormat;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -14,5 +14,5 @@ public interface ConsumerServiceClient {
 
   @PostMapping("/consumers/oauth")
   FeignFormat<Void> createConsumerForSignupBySns(
-      ConsumerInfoForCreateByKakaoRequestDto createByKakaoRequestDto);
+      ConsumerInfoForCreateBySnsRequestDto createBySnsRequestDto);
 }

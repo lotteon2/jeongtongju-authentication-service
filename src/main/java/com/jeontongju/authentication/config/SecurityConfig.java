@@ -4,7 +4,10 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 
 import com.jeontongju.authentication.security.jwt.JwtAuthenticationProvider;
 import com.jeontongju.authentication.security.jwt.JwtTokenProvider;
+import com.jeontongju.authentication.security.jwt.filter.InitialAuthenticationFilter;
 import com.jeontongju.authentication.security.jwt.filter.JwtAuthenticationFilter;
+import com.jeontongju.authentication.security.oauth.MemberOAuth2UserService;
+import com.jeontongju.authentication.security.oauth.OAuth2AuthenticationSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +17,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.CorsFilter;
 
 @Configuration
@@ -25,7 +28,9 @@ public class SecurityConfig {
   private final CorsFilter corsFilter;
   private final JwtTokenProvider jwtTokenProvider;
   private final JwtAuthenticationProvider jwtAuthenticationProvider;
+  private final MemberOAuth2UserService memberOAuth2UserService;
   private final RedisTemplate<String, String> redisTemplate;
+  private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -37,30 +42,15 @@ public class SecurityConfig {
         .disable()
         .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(STATELESS));
 
+    http.oauth2Login()
+        .userInfoEndpoint()
+        .userService(memberOAuth2UserService)
+        .and()
+        .successHandler(oAuth2AuthenticationSuccessHandler);
+
     http.addFilter(corsFilter).apply(new MyCustomDsl());
 
-    http.authorizeRequests(
-        authz ->
-            authz
-                .antMatchers("/api/password/auth")
-                .permitAll()
-                .antMatchers("/api/access-token")
-                .permitAll()
-                .antMatchers("/api/email/auth")
-                .permitAll()
-                .antMatchers("/api/sign-up/email/auth")
-                .permitAll()
-                .antMatchers("/api/consumers/sign-up")
-                .permitAll()
-                .antMatchers("/api/sellers/sign-up")
-                .permitAll()
-                .antMatchers("/api/sign-in")
-                .permitAll()
-                .antMatchers("/**")
-                .hasAnyRole("CONSUMER", "SELLER", "ADMIN")
-                .anyRequest()
-                .authenticated());
-
+    http.authorizeRequests(authz -> authz.anyRequest().permitAll());
     return http.build();
   }
 
@@ -70,10 +60,14 @@ public class SecurityConfig {
 
       AuthenticationManager authenticationManager =
           http.getSharedObject(AuthenticationManager.class);
+
+      InitialAuthenticationFilter initialAuthenticationFilter = new InitialAuthenticationFilter();
+
       JwtAuthenticationFilter jwtAuthenticationFilter =
           new JwtAuthenticationFilter(authenticationManager, jwtTokenProvider, redisTemplate);
-      // UsernamePasswordAuthenticationFilter 직전
-      http.addFilterAfter(jwtAuthenticationFilter, LogoutFilter.class)
+
+      http.addFilterBefore(initialAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+          .addFilterAfter(jwtAuthenticationFilter, InitialAuthenticationFilter.class)
           .authenticationProvider(jwtAuthenticationProvider);
     }
   }
