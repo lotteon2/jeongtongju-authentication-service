@@ -32,7 +32,6 @@ import io.jsonwebtoken.security.SignatureException;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.Optional;
 import javax.crypto.SecretKey;
 import javax.mail.MessagingException;
 import javax.persistence.EntityNotFoundException;
@@ -154,7 +153,7 @@ public class MemberService {
             savedMember));
 
     consumerClientService.createConsumerForSignupBySns(
-        ConsumerInfoForCreateByKakaoRequestDto.toDto(
+        ConsumerInfoForCreateBySnsRequestDto.toDto(
             savedMember.getMemberId(),
             email,
             kakaoOAuthInfo.getKakao_account().getProfile().getProfile_image_url()));
@@ -177,7 +176,7 @@ public class MemberService {
             savedMember));
 
     consumerClientService.createConsumerForSignupBySns(
-        ConsumerInfoForCreateByKakaoRequestDto.toDto(
+        ConsumerInfoForCreateBySnsRequestDto.toDto(
             savedMember.getMemberId(), email, googleOAuthInfo.getPicture()));
   }
 
