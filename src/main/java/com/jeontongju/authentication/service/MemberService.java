@@ -29,13 +29,11 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
-
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import javax.crypto.SecretKey;
 import javax.mail.MessagingException;
 import javax.persistence.EntityNotFoundException;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
@@ -132,7 +130,7 @@ public class MemberService {
   private Boolean isUniqueKeyDuplicated(String email, String memberRole) {
 
     Member foundMember = memberRepository.findByUsername(email).orElse(null);
-    return foundMember != null && foundMember.getMemberRoleEnum().toString().equals(memberRole);
+    return foundMember != null && foundMember.getMemberRoleEnum().name().equals(memberRole);
   }
 
   @Transactional
