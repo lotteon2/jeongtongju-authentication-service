@@ -7,12 +7,14 @@ import com.jeontongju.authentication.dto.response.oauth.OAuth2UserInfo;
 import com.jeontongju.authentication.entity.Member;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
 import com.jeontongju.authentication.enums.SnsTypeEnum;
+import com.jeontongju.authentication.exception.MemberNotFoundException;
 import com.jeontongju.authentication.mapper.MemberMapper;
 import com.jeontongju.authentication.mapper.SnsAccountMapper;
 import com.jeontongju.authentication.repository.MemberRepository;
 import com.jeontongju.authentication.repository.SnsAccountRepository;
 import com.jeontongju.authentication.security.MemberDetails;
 import com.jeontongju.authentication.service.feign.consumer.ConsumerClientService;
+import com.jeontongju.authentication.utils.CustomErrMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +47,6 @@ public class MemberOAuth2UserService extends DefaultOAuth2UserService {
 
   private OAuth2User processOAuth2User(OAuth2UserRequest userRequest, OAuth2User oAuth2User) {
 
-    log.info("oAuth2User: " + oAuth2User);
     OAuth2UserInfo oAuth2UserInfo = null;
     String oauthType = userRequest.getClientRegistration().getRegistrationId().toUpperCase();
     String oauthId = oAuth2User.getName();
@@ -80,8 +81,11 @@ public class MemberOAuth2UserService extends DefaultOAuth2UserService {
               registerMemberFromSns(
                   googleEmail, SnsTypeEnum.GOOGLE, googleId, googleProfileImageUrl);
       }
-    } else {
-
+    } else { // 기존 회원
+      member =
+          memberRepository
+              .findByUsername(oAuth2UserInfo.getEmail())
+              .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
     }
 
     return new MemberDetails(member, oAuth2User.getAttributes());
@@ -95,7 +99,8 @@ public class MemberOAuth2UserService extends DefaultOAuth2UserService {
         memberRepository.save(memberMapper.toEntity(email, "", MemberRoleEnum.ROLE_CONSUMER));
 
     snsAccountRepository.save(
-        snsAccountMapper.toEntity(snsTypeEnum.name() + "_" + snsUniqueId, snsTypeEnum.name(), savedMember));
+        snsAccountMapper.toEntity(
+            snsTypeEnum.name() + "_" + snsUniqueId, snsTypeEnum.name(), savedMember));
 
     consumerClientService.createConsumerForSignupBySns(
         ConsumerInfoForCreateBySnsRequestDto.toDto(

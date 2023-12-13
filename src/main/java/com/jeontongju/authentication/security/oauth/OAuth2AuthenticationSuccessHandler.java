@@ -37,6 +37,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
   public void onAuthenticationSuccess(
       HttpServletRequest request, HttpServletResponse response, Authentication authentication)
       throws IOException {
+
     OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
     MemberDetails memberDetails = (MemberDetails) oAuth2User;
     Collection<? extends GrantedAuthority> authorities = memberDetails.getAuthorities();
@@ -44,13 +45,11 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
     Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
     GrantedAuthority authority = iterator.next();
     String memberRole = authority.getAuthority();
-    log.info("oAuth2User: " + oAuth2User);
 
     String accessToken = jwtTokenProvider.createToken(authentication);
     String refreshToken = jwtTokenProvider.createRefreshToken(Long.parseLong(oAuth2User.getName()));
     String refreshKey = memberRole + "_" + memberDetails.getUsername();
 
-    log.info("refreshKey: " + refreshKey);
     ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();
     stringStringValueOperations.set(refreshKey, refreshToken);
 
