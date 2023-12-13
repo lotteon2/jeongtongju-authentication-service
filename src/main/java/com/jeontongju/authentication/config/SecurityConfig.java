@@ -6,6 +6,8 @@ import com.jeontongju.authentication.security.jwt.JwtAuthenticationProvider;
 import com.jeontongju.authentication.security.jwt.JwtTokenProvider;
 import com.jeontongju.authentication.security.jwt.filter.InitialAuthenticationFilter;
 import com.jeontongju.authentication.security.jwt.filter.JwtAuthenticationFilter;
+import com.jeontongju.authentication.security.oauth.MemberOAuth2UserService;
+import com.jeontongju.authentication.security.oauth.OAuth2AuthenticationSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,7 +28,9 @@ public class SecurityConfig {
   private final CorsFilter corsFilter;
   private final JwtTokenProvider jwtTokenProvider;
   private final JwtAuthenticationProvider jwtAuthenticationProvider;
+  private final MemberOAuth2UserService memberOAuth2UserService;
   private final RedisTemplate<String, String> redisTemplate;
+  private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -37,6 +41,12 @@ public class SecurityConfig {
         .httpBasic()
         .disable()
         .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(STATELESS));
+
+    http.oauth2Login()
+        .userInfoEndpoint()
+        .userService(memberOAuth2UserService)
+        .and()
+        .successHandler(oAuth2AuthenticationSuccessHandler);
 
     http.addFilter(corsFilter).apply(new MyCustomDsl());
 
