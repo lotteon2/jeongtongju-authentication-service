@@ -21,7 +21,8 @@ public class CorsConfig {
             "https://jeontongju-jumo.netlify.app/",
             "https://test-jeontongju-jumo.netlify.app/",
             "https://jeontongju-front-admin.vercel.app/",
-            "https://jeontongju-front-consumer.vercel.app/"));
+            "https://jeontongju-front-consumer.vercel.app/",
+            "https://admin.jeontongju-dev.shop"));
     config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     config.addAllowedHeader("*");
     config.addExposedHeader("Authorization");
