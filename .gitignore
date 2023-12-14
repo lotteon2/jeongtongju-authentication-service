@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+/src/test/resources/application.yml
+/src/main/resources/data.sql
+/src/main/resources/schema.sql
