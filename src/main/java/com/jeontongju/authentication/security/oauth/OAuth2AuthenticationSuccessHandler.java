@@ -62,14 +62,6 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
     response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
 
-    ResponseFormat<JwtAccessTokenResponse> responseFormat =
-        ResponseFormat.<JwtAccessTokenResponse>builder()
-            .code(HttpStatus.OK.value())
-            .message(HttpStatus.OK.name())
-            .detail("소셜 로그인 성공")
-            .data(JwtAccessTokenResponse.builder().accessToken(accessToken).build())
-            .build();
-    String jsonBody = objectMapper.writeValueAsString(responseFormat);
-    response.getWriter().write(jsonBody);
+    response.sendRedirect("https://jeontongju-front-consumer.vercel.app/init/callback?code=" + accessToken);
   }
 }
