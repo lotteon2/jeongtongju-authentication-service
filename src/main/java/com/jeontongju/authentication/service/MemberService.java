@@ -8,7 +8,6 @@ import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
 import com.jeontongju.authentication.dto.response.oauth.google.GoogleOAuthInfo;
 import com.jeontongju.authentication.dto.response.oauth.kakao.KakaoOAuthInfo;
 import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateBySnsRequestDto;
-import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateRequestDto;
 import com.jeontongju.authentication.dto.temp.SellerInfoForCreateRequestDto;
 import com.jeontongju.authentication.entity.Member;
 import com.jeontongju.authentication.entity.SnsAccount;
@@ -109,7 +108,7 @@ public class MemberService {
                 MemberRoleEnum.ROLE_CONSUMER));
 
     consumerClientService.createConsumerForSignup(
-        ConsumerInfoForCreateRequestDto.toDto(
+        memberMapper.toConsumerCreateDto(
             savedConsumer.getMemberId(), savedConsumer.getUsername(), impAuthInfo));
   }
 
@@ -128,8 +127,7 @@ public class MemberService {
                 MemberRoleEnum.ROLE_SELLER));
 
     sellerClientService.createSellerForSignup(
-        SellerInfoForCreateRequestDto.toDto(
-            savedSeller.getMemberId(), signUpRequestDto, impAuthInfo));
+        memberMapper.toSellerCreateDto(savedSeller.getMemberId(), signUpRequestDto, impAuthInfo));
   }
 
   private Boolean isUniqueKeyDuplicated(String email, String memberRole) {
