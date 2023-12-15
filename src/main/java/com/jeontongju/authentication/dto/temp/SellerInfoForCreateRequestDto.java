@@ -1,5 +1,6 @@
-package com.jeontongju.authentication.dto.request;
+package com.jeontongju.authentication.dto.temp;
 
+import com.jeontongju.authentication.dto.request.SellerInfoForSignUpRequestDto;
 import com.jeontongju.authentication.dto.response.ImpAuthInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
