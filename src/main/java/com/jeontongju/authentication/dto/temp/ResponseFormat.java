@@ -1,4 +1,4 @@
-package com.jeontongju.authentication.dto;
+package com.jeontongju.authentication.dto.temp;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;

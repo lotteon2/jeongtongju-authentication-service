@@ -1,6 +1,6 @@
 package com.jeontongju.authentication.controller;
 
-import com.jeontongju.authentication.dto.ResponseFormat;
+import com.jeontongju.authentication.dto.temp.ResponseFormat;
 import com.jeontongju.authentication.dto.request.*;
 import com.jeontongju.authentication.dto.response.JwtTokenResponse;
 import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;

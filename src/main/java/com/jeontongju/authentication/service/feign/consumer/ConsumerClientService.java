@@ -1,7 +1,7 @@
 package com.jeontongju.authentication.service.feign.consumer;
 
-import com.jeontongju.authentication.dto.request.ConsumerInfoForCreateBySnsRequestDto;
-import com.jeontongju.authentication.dto.request.ConsumerInfoForCreateRequestDto;
+import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateBySnsRequestDto;
+import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

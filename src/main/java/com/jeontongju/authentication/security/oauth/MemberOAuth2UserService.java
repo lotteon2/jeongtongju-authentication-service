@@ -1,6 +1,6 @@
 package com.jeontongju.authentication.security.oauth;
 
-import com.jeontongju.authentication.dto.request.ConsumerInfoForCreateBySnsRequestDto;
+import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateBySnsRequestDto;
 import com.jeontongju.authentication.dto.response.oauth.google.GoogleUserInfo;
 import com.jeontongju.authentication.dto.response.oauth.kakao.KakaoUserInfo;
 import com.jeontongju.authentication.dto.response.oauth.OAuth2UserInfo;

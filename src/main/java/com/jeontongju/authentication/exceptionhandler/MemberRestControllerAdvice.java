@@ -1,6 +1,6 @@
 package com.jeontongju.authentication.exceptionhandler;
 
-import com.jeontongju.authentication.dto.ResponseFormat;
+import com.jeontongju.authentication.dto.temp.ResponseFormat;
 import com.jeontongju.authentication.exception.*;
 import com.jeontongju.authentication.utils.CustomErrMessage;
 import java.io.IOException;
