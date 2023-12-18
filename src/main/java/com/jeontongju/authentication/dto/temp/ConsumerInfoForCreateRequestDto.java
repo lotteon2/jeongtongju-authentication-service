@@ -1,4 +1,4 @@
-package com.jeontongju.authentication.dto.request;
+package com.jeontongju.authentication.dto.temp;
 
 import com.jeontongju.authentication.dto.response.ImpAuthInfo;
 import lombok.AllArgsConstructor;
@@ -16,14 +16,4 @@ public class ConsumerInfoForCreateRequestDto {
   private String email;
   private String name;
   private String phoneNumber;
-
-  public static ConsumerInfoForCreateRequestDto toDto(
-          Long consumerId, String email, ImpAuthInfo impAuthInfo) {
-    return ConsumerInfoForCreateRequestDto.builder()
-        .consumerId(consumerId)
-        .email(email)
-        .name(impAuthInfo.getName())
-        .phoneNumber(impAuthInfo.getPhone())
-        .build();
-  }
 }
