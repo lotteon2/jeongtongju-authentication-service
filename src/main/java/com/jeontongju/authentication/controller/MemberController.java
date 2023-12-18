@@ -124,8 +124,10 @@ public class MemberController {
   public ResponseEntity<ResponseFormat<String>> issueAccessTokenByRefreshToken(
       @CookieValue("refreshToken") String refreshToken, HttpServletResponse response) {
 
+    log.info("MemberController's issueAccessTokenByRefreshToken executes..");
     JwtTokenResponse jwtTokenResponse = memberService.renewAccessTokenByRefreshToken(refreshToken);
 
+    log.info("MemberController's issueAccessTokenByRefreshToken Successful executed!");
     Cookie cookie = new Cookie("refreshToken", jwtTokenResponse.getRefreshToken());
     response.addCookie(cookie);
     return ResponseEntity.ok()
