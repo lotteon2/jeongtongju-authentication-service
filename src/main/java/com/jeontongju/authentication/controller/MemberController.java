@@ -7,8 +7,10 @@ import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
 import com.jeontongju.authentication.service.MemberService;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import javax.mail.MessagingException;
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -122,7 +124,24 @@ public class MemberController {
 
   @PutMapping("/access-token")
   public ResponseEntity<ResponseFormat<String>> issueAccessTokenByRefreshToken(
-      @CookieValue("refreshToken") String refreshToken, HttpServletResponse response) {
+      HttpServletRequest request, HttpServletResponse response) {
+
+    Cookie[] cookies = request.getCookies();
+
+    String refreshToken = null;
+    if (cookies == null) {
+      log.info("쿠키가 없습니다.");
+    } else {
+      for (Cookie cookie : cookies) {
+        if ("refreshToken".equals(cookie.getName())) {
+          refreshToken = cookie.getValue();
+        } else {
+          log.info("refreshToken 이라는 이름의 쿠키가 없습니다");
+        }
+      }
+    }
+
+    log.info("쿠키 확인 완료");
 
     log.info("MemberController's issueAccessTokenByRefreshToken executes..");
     JwtTokenResponse jwtTokenResponse = memberService.renewAccessTokenByRefreshToken(refreshToken);
