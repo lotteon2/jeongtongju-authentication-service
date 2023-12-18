@@ -12,4 +12,5 @@ public interface CustomErrMessage {
   String MALFORMED_REFRESH_TOKEN = "잘못된 토큰";
   String NOT_VALID_REFRESH_TOKEN = "만료되거나 잘못된 토큰";
   String NOT_CORRESPOND_ORIGIN_PASSWORD = "기존 비밀번호 불일치";
+  String UNFORESEEM_ERROR = "예측하지 못한 에러";
 }

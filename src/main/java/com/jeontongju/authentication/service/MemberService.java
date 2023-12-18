@@ -8,6 +8,7 @@ import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
 import com.jeontongju.authentication.dto.response.oauth.google.GoogleOAuthInfo;
 import com.jeontongju.authentication.dto.response.oauth.kakao.KakaoOAuthInfo;
 import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateBySnsRequestDto;
+import com.jeontongju.authentication.dto.temp.MemberEmailForKeyDto;
 import com.jeontongju.authentication.dto.temp.SellerInfoForCreateRequestDto;
 import com.jeontongju.authentication.entity.Member;
 import com.jeontongju.authentication.entity.SnsAccount;
@@ -34,6 +35,7 @@ import io.jsonwebtoken.security.SignatureException;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Optional;
 import javax.crypto.SecretKey;
 import javax.mail.MessagingException;
 import javax.persistence.EntityNotFoundException;
@@ -221,6 +223,8 @@ public class MemberService {
       throw new ExpiredRefreshTokenException(CustomErrMessage.EXPIRED_REFRESH_TOKEN);
     } catch (IllegalArgumentException | SignatureException | MalformedJwtException e) {
       throw new NotValidRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN);
+    } catch (Exception e) {
+      throw new UnforeseenException(CustomErrMessage.UNFORESEEM_ERROR);
     }
   }
 
@@ -267,5 +271,14 @@ public class MemberService {
             .findByMemberId(memberId)
             .orElseThrow(() -> new ConsumerNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
     foundMember.assignPassword(simpleChangeRequestDto.getNewPassword());
+  }
+
+  public MemberEmailForKeyDto getMemberEmailForKey(Long memberId) {
+
+    Member foundMember =
+        memberRepository
+            .findByMemberId(memberId)
+            .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+    return MemberEmailForKeyDto.builder().email(foundMember.getUsername()).build();
   }
 }
