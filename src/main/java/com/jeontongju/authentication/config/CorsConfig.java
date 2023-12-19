@@ -18,6 +18,9 @@ public class CorsConfig {
     config.setAllowCredentials(true);
     config.setAllowedOrigins(
         List.of(
+            "http://localhost:3000",
+            "http://localhost:3001",
+            "http://localhost:5173",
             "https://jeontongju-jumo.netlify.app/",
             "https://test-jeontongju-jumo.netlify.app/",
             "https://jeontongju-front-admin.vercel.app/",

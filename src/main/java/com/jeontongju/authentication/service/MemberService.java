@@ -181,14 +181,18 @@ public class MemberService {
             savedMember.getMemberId(), email, googleOAuthInfo.getPicture()));
   }
 
+  @Transactional
   public JwtTokenResponse renewAccessTokenByRefreshToken(String refreshToken) {
 
-    ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();
-
-    byte[] keyBytes = Decoders.BASE64.decode(secret);
-    SecretKey key = Keys.hmacShaKeyFor(keyBytes);
-
+    log.info("MemberService's renewAccessTokenByRefreshToken executes..");
     try {
+      log.info("redisTemplate starts..");
+      ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();
+
+
+      byte[] keyBytes = Decoders.BASE64.decode(secret);
+      SecretKey key = Keys.hmacShaKeyFor(keyBytes);
+
       Claims claims = checkValid(refreshToken, key);
       String memberId = claims.get("memberId", String.class);
       Member member =
@@ -198,7 +202,9 @@ public class MemberService {
                   () ->
                       new MalformedRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN));
       String refreshKey = member.getMemberRoleEnum().name() + "_" + member.getUsername();
+      log.info("redisTemplate.opsForValue get..");
       String refreshTokenInRedis = stringStringValueOperations.get(refreshKey);
+      log.info("redisTemplate Successful end!");
 
       // refreshtoken이 탈취되었을 가능성이 있을지 확인
       if (!refreshToken.equals(refreshTokenInRedis)) {
@@ -218,10 +224,13 @@ public class MemberService {
           .build();
 
     } catch (ExpiredJwtException e) {
+      log.info("refresh token expired.");
       throw new ExpiredRefreshTokenException(CustomErrMessage.EXPIRED_REFRESH_TOKEN);
     } catch (IllegalArgumentException | SignatureException | MalformedJwtException e) {
+      log.info("wrong refresh token.");
       throw new NotValidRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN);
     } catch (Exception e) {
+      log.info("unforeseen error!!");
       throw new UnforeseenException(CustomErrMessage.UNFORESEEM_ERROR);
     }
   }
