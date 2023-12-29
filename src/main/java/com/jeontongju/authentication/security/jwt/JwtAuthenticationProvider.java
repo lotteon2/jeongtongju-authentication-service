@@ -1,6 +1,5 @@
 package com.jeontongju.authentication.security.jwt;
 
-import com.jeontongju.authentication.enums.MemberRoleEnum;
 import com.jeontongju.authentication.security.MemberDetails;
 import com.jeontongju.authentication.security.MemberDetailsService;
 import com.jeontongju.authentication.security.jwt.token.JwtAuthenticationToken;
@@ -37,18 +36,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     JwtAuthenticationToken jwtAuthenticationToken = (JwtAuthenticationToken) authentication;
     String memberRole = jwtAuthenticationToken.getRole();
 
-    MemberRoleEnum memberRoleEnum = null;
-    if (memberRole.equals("ROLE_ADMIN")) {
-      memberRoleEnum = MemberRoleEnum.ROLE_ADMIN;
-    } else {
-      memberRoleEnum =
-          memberRole.equals("ROLE_CONSUMER")
-              ? MemberRoleEnum.ROLE_CONSUMER
-              : MemberRoleEnum.ROLE_SELLER;
-    }
-
-    memberDetailsService.assignMemberRole(memberRoleEnum);
-    MemberDetails memberDetails = memberDetailsService.loadUserByUsername(username);
+    MemberDetails memberDetails = memberDetailsService.loadUserByUsername(username + "_" + memberRole);
 
     // 탈퇴한 회원
     if (!memberDetails.isEnabled()) {
