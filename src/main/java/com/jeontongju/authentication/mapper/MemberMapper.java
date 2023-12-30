@@ -2,6 +2,7 @@ package com.jeontongju.authentication.mapper;
 
 import com.jeontongju.authentication.dto.request.SellerInfoForSignUpRequestDto;
 import com.jeontongju.authentication.dto.response.ImpAuthInfo;
+import com.jeontongju.authentication.dto.temp.ConsumerInfoForAccountConsolidationDto;
 import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateRequestDto;
 import com.jeontongju.authentication.dto.temp.SellerInfoForCreateRequestDto;
 import com.jeontongju.authentication.entity.Member;
@@ -44,6 +45,16 @@ public class MemberMapper {
         .storePhoneNumber(signUpRequestDto.getStorePhoneNumber())
         .businessmanName(impAuthInfo.getName())
         .businessmanPhoneNumber(impAuthInfo.getPhone())
+        .build();
+  }
+
+  public ConsumerInfoForAccountConsolidationDto toAccountConsolidationDto(
+      Long consumerId, ImpAuthInfo impAuthInfo) {
+
+    return ConsumerInfoForAccountConsolidationDto.builder()
+        .consumerId(consumerId)
+        .name(impAuthInfo.getName())
+        .phoneNumber(impAuthInfo.getPhone())
         .build();
   }
 }
