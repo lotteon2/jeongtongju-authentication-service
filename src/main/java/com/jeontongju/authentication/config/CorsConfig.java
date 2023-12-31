@@ -28,9 +28,11 @@ public class CorsConfig {
             "https://admin.jeontongju-dev.shop",
             "https://seller.jeontongju-dev.shop",
             "https://consumer.jeontongj-dev.shop"));
-    config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-    config.addAllowedHeader("*");
+    config.setAllowedMethods(List.of("GET", "POST", "PU)T", "PATCH", "DELETE", "OPTIONS"));
+    config.addAllowedHeader("Authorization");
+    config.addAllowedHeader("X-Custom-Header");
     config.addExposedHeader("Authorization");
+    config.addExposedHeader("X-Custom-Header");
     source.registerCorsConfiguration("/**", config);
     return new CorsFilter(source);
   }
