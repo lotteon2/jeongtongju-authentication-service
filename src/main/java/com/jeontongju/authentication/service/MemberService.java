@@ -100,16 +100,32 @@ public class MemberService {
 
     ImpAuthInfo impAuthInfo = Auth19Manager.authenticate19(signupRequestDto.getImpUid());
 
-    Member savedConsumer =
-        memberRepository.save(
-            memberMapper.toEntity(
-                signupRequestDto.getEmail(),
-                signupRequestDto.getPassword(),
-                MemberRoleEnum.ROLE_CONSUMER));
+    Member savedConsumer = null;
+    if (signupRequestDto.getIsMerge()) { // 계정 통합 시
 
-    consumerClientService.createConsumerForSignup(
-        memberMapper.toConsumerCreateDto(
-            savedConsumer.getMemberId(), savedConsumer.getUsername(), impAuthInfo));
+      savedConsumer =
+          memberRepository
+              .findByUsernameAndMemberRoleEnum(
+                  signupRequestDto.getEmail(), MemberRoleEnum.ROLE_CONSUMER)
+              .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+      savedConsumer.assignPassword(signupRequestDto.getPassword());
+
+      consumerClientService.updateConsumerForAccountConsolidation(
+          memberMapper.toAccountConsolidationDto(savedConsumer.getMemberId(), impAuthInfo));
+    } else {
+
+      savedConsumer =
+          memberRepository.save(
+              memberMapper.toEntity(
+                  signupRequestDto.getEmail(),
+                  signupRequestDto.getPassword(),
+                  MemberRoleEnum.ROLE_CONSUMER));
+
+      // 소비자 테이블에 성인 인증으로 얻어온 정보 저장
+      consumerClientService.createConsumerForSignup(
+          memberMapper.toConsumerCreateDto(
+              savedConsumer.getMemberId(), savedConsumer.getUsername(), impAuthInfo));
+    }
   }
 
   @Transactional
@@ -188,7 +204,6 @@ public class MemberService {
     try {
       log.info("redisTemplate starts..");
       ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();
-
 
       byte[] keyBytes = Decoders.BASE64.decode(secret);
       SecretKey key = Keys.hmacShaKeyFor(keyBytes);

@@ -1,5 +1,6 @@
 package com.jeontongju.authentication.service.feign.consumer;
 
+import com.jeontongju.authentication.dto.temp.ConsumerInfoForAccountConsolidationDto;
 import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateBySnsRequestDto;
 import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateRequestDto;
 import lombok.RequiredArgsConstructor;
@@ -22,5 +23,11 @@ public class ConsumerClientService {
   public void createConsumerForSignupBySns(
       ConsumerInfoForCreateBySnsRequestDto createBySnsRequestDto) {
     consumerServiceClient.createConsumerForSignupBySns(createBySnsRequestDto);
+  }
+
+  @Transactional
+  public void updateConsumerForAccountConsolidation(ConsumerInfoForAccountConsolidationDto accountConsolidationDto) {
+
+    consumerServiceClient.updateConsumerForAccountConsolidation(accountConsolidationDto);
   }
 }

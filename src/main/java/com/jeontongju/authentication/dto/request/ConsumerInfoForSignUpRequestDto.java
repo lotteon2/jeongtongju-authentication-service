@@ -15,18 +15,20 @@ import lombok.NoArgsConstructor;
 @Getter
 public class ConsumerInfoForSignUpRequestDto {
 
-  @NotNull
+  @NotNull(message = "필수 데이터 미포함")
   @Email(message = "회원가입 형식에 맞게 입력해주세요")
   private String email;
 
-  @NotNull
+  @NotNull(message = "필수 데이터 미포함")
   @Pattern(
       regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[~!@#$%^&*()+|=])[A-Za-z\\d~!@#$%^&*()+|=]{8,16}$",
       message = "회원가입 형식에 맞게 입력해주세요")
   @Size(min = 8, max = 16, message = "회원가입 형식에 맞게 입력해주세요")
   private String password;
 
-  @NotNull private String impUid;
+  @NotNull(message = "필수 데이터 미포함")
+  private String impUid;
 
-  @NotNull private Boolean isMerge;
+  @NotNull(message = "필수 데이터 미포함")
+  private Boolean isMerge;
 }
