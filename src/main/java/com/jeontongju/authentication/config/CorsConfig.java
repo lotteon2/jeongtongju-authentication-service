@@ -27,7 +27,7 @@ public class CorsConfig {
             "https://jeontongju-front-consumer.vercel.app/",
             "https://admin.jeontongju-dev.shop",
             "https://seller.jeontongju-dev.shop",
-            "https://consumer.jeontongj-dev.shop"));
+            "https://consumer.jeontongju-dev.shop"));
     config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     config.addAllowedHeader("*");
     config.addExposedHeader("Authorization");
