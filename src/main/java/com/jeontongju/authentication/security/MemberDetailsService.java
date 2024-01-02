@@ -25,8 +25,14 @@ public class MemberDetailsService implements UserDetailsService {
     String email = usernameBits[0];
     String role = usernameBits[1];
 
-    MemberRoleEnum memberRoleEnum =
-        role.equals("ROLE_CONSUMER") ? MemberRoleEnum.ROLE_CONSUMER : MemberRoleEnum.ROLE_SELLER;
+    MemberRoleEnum memberRoleEnum;
+    if(role.equals("ROLE_CONSUMER")) {
+        memberRoleEnum = MemberRoleEnum.ROLE_CONSUMER;
+    } else if(role.equals("ROLE_SELLER")) {
+        memberRoleEnum = MemberRoleEnum.ROLE_SELLER;
+    } else {
+        memberRoleEnum = MemberRoleEnum.ROLE_ADMIN;
+    }
 
     log.info("MemberDetailsService's loadUserByUsername executes");
     Member member =
