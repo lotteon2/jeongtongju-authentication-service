@@ -1,4 +1,4 @@
-package com.jeontongju.authentication.dto.request;
+package com.jeontongju.authentication.dto.temp;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

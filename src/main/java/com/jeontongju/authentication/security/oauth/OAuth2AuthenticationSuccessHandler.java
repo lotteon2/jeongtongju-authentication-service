@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jeontongju.authentication.dto.ResponseFormat;
+import com.jeontongju.authentication.dto.temp.ResponseFormat;
 import com.jeontongju.authentication.dto.response.JwtAccessTokenResponse;
 import com.jeontongju.authentication.security.MemberDetails;
 import com.jeontongju.authentication.security.jwt.JwtTokenProvider;
@@ -62,6 +62,6 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
     response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
 
-    response.sendRedirect("https://jeontongju-front-consumer.vercel.app/init/callback?code=" + accessToken);
+    response.sendRedirect("https://consumer.jeontongju-dev.shop/init/callback?code=" + accessToken);
   }
 }

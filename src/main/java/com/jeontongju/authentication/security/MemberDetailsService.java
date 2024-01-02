@@ -16,16 +16,28 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class MemberDetailsService implements UserDetailsService {
 
-  private MemberRoleEnum memberRole;
   private final MemberRepository memberRepository;
 
   @Override
   public MemberDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
+    String[] usernameBits = username.split("_", 2);
+    String email = usernameBits[0];
+    String role = usernameBits[1];
+
+    MemberRoleEnum memberRoleEnum;
+    if(role.equals("ROLE_CONSUMER")) {
+        memberRoleEnum = MemberRoleEnum.ROLE_CONSUMER;
+    } else if(role.equals("ROLE_SELLER")) {
+        memberRoleEnum = MemberRoleEnum.ROLE_SELLER;
+    } else {
+        memberRoleEnum = MemberRoleEnum.ROLE_ADMIN;
+    }
+
     log.info("MemberDetailsService's loadUserByUsername executes");
     Member member =
         memberRepository
-            .findByUsernameAndMemberRoleEnum(username, memberRole)
+            .findByUsernameAndMemberRoleEnum(email, memberRoleEnum)
             .orElseThrow(
                 () ->
                     new AuthenticationException(CustomErrMessage.NOT_FOUND_MEMBER) {
@@ -36,9 +48,5 @@ public class MemberDetailsService implements UserDetailsService {
                     });
 
     return new MemberDetails(member);
-  }
-
-  public void assignMemberRole(MemberRoleEnum memberRole) {
-    this.memberRole = memberRole;
   }
 }

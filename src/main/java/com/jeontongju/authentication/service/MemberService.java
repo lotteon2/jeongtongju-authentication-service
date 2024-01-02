@@ -7,6 +7,9 @@ import com.jeontongju.authentication.dto.response.JwtTokenResponse;
 import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
 import com.jeontongju.authentication.dto.response.oauth.google.GoogleOAuthInfo;
 import com.jeontongju.authentication.dto.response.oauth.kakao.KakaoOAuthInfo;
+import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateBySnsRequestDto;
+import com.jeontongju.authentication.dto.temp.MemberEmailForKeyDto;
+import com.jeontongju.authentication.dto.temp.SellerInfoForCreateRequestDto;
 import com.jeontongju.authentication.entity.Member;
 import com.jeontongju.authentication.entity.SnsAccount;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
@@ -31,6 +34,7 @@ import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Optional;
 import javax.crypto.SecretKey;
 import javax.mail.MessagingException;
 import javax.persistence.EntityNotFoundException;
@@ -96,16 +100,32 @@ public class MemberService {
 
     ImpAuthInfo impAuthInfo = Auth19Manager.authenticate19(signupRequestDto.getImpUid());
 
-    Member savedConsumer =
-        memberRepository.save(
-            memberMapper.toEntity(
-                signupRequestDto.getEmail(),
-                signupRequestDto.getPassword(),
-                MemberRoleEnum.ROLE_CONSUMER));
+    Member savedConsumer = null;
+    if (signupRequestDto.getIsMerge()) { // 계정 통합 시
 
-    consumerClientService.createConsumerForSignup(
-        ConsumerInfoForCreateRequestDto.toDto(
-            savedConsumer.getMemberId(), savedConsumer.getUsername(), impAuthInfo));
+      savedConsumer =
+          memberRepository
+              .findByUsernameAndMemberRoleEnum(
+                  signupRequestDto.getEmail(), MemberRoleEnum.ROLE_CONSUMER)
+              .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+      savedConsumer.assignPassword(signupRequestDto.getPassword());
+
+      consumerClientService.updateConsumerForAccountConsolidation(
+          memberMapper.toAccountConsolidationDto(savedConsumer.getMemberId(), impAuthInfo));
+    } else {
+
+      savedConsumer =
+          memberRepository.save(
+              memberMapper.toEntity(
+                  signupRequestDto.getEmail(),
+                  signupRequestDto.getPassword(),
+                  MemberRoleEnum.ROLE_CONSUMER));
+
+      // 소비자 테이블에 성인 인증으로 얻어온 정보 저장
+      consumerClientService.createConsumerForSignup(
+          memberMapper.toConsumerCreateDto(
+              savedConsumer.getMemberId(), savedConsumer.getUsername(), impAuthInfo));
+    }
   }
 
   @Transactional
@@ -123,8 +143,7 @@ public class MemberService {
                 MemberRoleEnum.ROLE_SELLER));
 
     sellerClientService.createSellerForSignup(
-        SellerInfoForCreateRequestDto.toDto(
-            savedSeller.getMemberId(), signUpRequestDto, impAuthInfo));
+        memberMapper.toSellerCreateDto(savedSeller.getMemberId(), signUpRequestDto, impAuthInfo));
   }
 
   private Boolean isUniqueKeyDuplicated(String email, String memberRole) {
@@ -178,14 +197,17 @@ public class MemberService {
             savedMember.getMemberId(), email, googleOAuthInfo.getPicture()));
   }
 
+  @Transactional
   public JwtTokenResponse renewAccessTokenByRefreshToken(String refreshToken) {
 
-    ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();
-
-    byte[] keyBytes = Decoders.BASE64.decode(secret);
-    SecretKey key = Keys.hmacShaKeyFor(keyBytes);
-
+    log.info("MemberService's renewAccessTokenByRefreshToken executes..");
     try {
+      log.info("redisTemplate starts..");
+      ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();
+
+      byte[] keyBytes = Decoders.BASE64.decode(secret);
+      SecretKey key = Keys.hmacShaKeyFor(keyBytes);
+
       Claims claims = checkValid(refreshToken, key);
       String memberId = claims.get("memberId", String.class);
       Member member =
@@ -195,7 +217,9 @@ public class MemberService {
                   () ->
                       new MalformedRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN));
       String refreshKey = member.getMemberRoleEnum().name() + "_" + member.getUsername();
+      log.info("redisTemplate.opsForValue get..");
       String refreshTokenInRedis = stringStringValueOperations.get(refreshKey);
+      log.info("redisTemplate Successful end!");
 
       // refreshtoken이 탈취되었을 가능성이 있을지 확인
       if (!refreshToken.equals(refreshTokenInRedis)) {
@@ -215,9 +239,14 @@ public class MemberService {
           .build();
 
     } catch (ExpiredJwtException e) {
+      log.info("refresh token expired.");
       throw new ExpiredRefreshTokenException(CustomErrMessage.EXPIRED_REFRESH_TOKEN);
     } catch (IllegalArgumentException | SignatureException | MalformedJwtException e) {
+      log.info("wrong refresh token.");
       throw new NotValidRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN);
+    } catch (Exception e) {
+      log.info("unforeseen error!!");
+      throw new UnforeseenException(CustomErrMessage.UNFORESEEM_ERROR);
     }
   }
 
@@ -264,5 +293,14 @@ public class MemberService {
             .findByMemberId(memberId)
             .orElseThrow(() -> new ConsumerNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
     foundMember.assignPassword(simpleChangeRequestDto.getNewPassword());
+  }
+
+  public MemberEmailForKeyDto getMemberEmailForKey(Long memberId) {
+
+    Member foundMember =
+        memberRepository
+            .findByMemberId(memberId)
+            .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+    return MemberEmailForKeyDto.builder().email(foundMember.getUsername()).build();
   }
 }

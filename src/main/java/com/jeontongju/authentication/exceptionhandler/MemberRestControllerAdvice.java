@@ -1,6 +1,6 @@
 package com.jeontongju.authentication.exceptionhandler;
 
-import com.jeontongju.authentication.dto.ResponseFormat;
+import com.jeontongju.authentication.dto.temp.ResponseFormat;
 import com.jeontongju.authentication.exception.*;
 import com.jeontongju.authentication.utils.CustomErrMessage;
 import java.io.IOException;
@@ -82,6 +82,20 @@ public class MemberRestControllerAdvice extends ResponseEntityExceptionHandler {
                 .message(status.name())
                 .detail(CustomErrMessage.NOT_VALID_REFRESH_TOKEN)
                 .failure("NOT_VALID_REFRESH_TOKEN")
+                .build());
+  }
+
+  @ExceptionHandler(UnforeseenException.class)
+  public ResponseEntity<ResponseFormat<Void>> handleUnforeseenException() {
+
+    HttpStatus status = HttpStatus.UNAUTHORIZED;
+
+    return ResponseEntity.status(status)
+        .body(
+            ResponseFormat.<Void>builder()
+                .code(status.value())
+                .message(status.name())
+                .detail(CustomErrMessage.UNFORESEEM_ERROR)
                 .build());
   }
 
