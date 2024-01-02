@@ -29,8 +29,7 @@ public class CorsConfig {
             "https://seller.jeontongju-dev.shop",
             "https://consumer.jeontongj-dev.shop"));
     config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-    config.addAllowedHeader("Authorization");
-    config.addAllowedHeader("X-Custom-Header");
+    config.addAllowedHeader("*");
     config.addExposedHeader("Authorization");
     config.addExposedHeader("X-Custom-Header");
     source.registerCorsConfiguration("/**", config);
