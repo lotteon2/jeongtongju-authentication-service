@@ -224,6 +224,8 @@ public class MemberService {
       // refreshtoken이 탈취되었을 가능성이 있을지 확인
       if (!refreshToken.equals(refreshTokenInRedis)) {
         // 다르면 탈취된 것으로 판단
+        log.info("[refreshToken is different in redis]!!");
+        log.info("[delete refresh key & value in redis]..");
         redisTemplate.delete(refreshKey);
         throw new MalformedRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN);
       }
@@ -233,6 +235,7 @@ public class MemberService {
       String renewedRefreshToken = jwtTokenProvider.createRefreshToken(Long.parseLong(memberId));
       stringStringValueOperations.set(refreshKey, renewedRefreshToken);
 
+      log.info("access token & refresh token renewed.");
       return JwtTokenResponse.builder()
           .accessToken("Bearer " + renewedAccessToken)
           .refreshToken(renewedRefreshToken)
