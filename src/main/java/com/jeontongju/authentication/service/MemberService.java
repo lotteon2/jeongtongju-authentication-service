@@ -234,7 +234,7 @@ public class MemberService {
       stringStringValueOperations.set(refreshKey, renewedRefreshToken);
 
       return JwtTokenResponse.builder()
-          .accessToken(renewedAccessToken)
+          .accessToken("Bearer " + renewedAccessToken)
           .refreshToken(renewedRefreshToken)
           .build();
 
