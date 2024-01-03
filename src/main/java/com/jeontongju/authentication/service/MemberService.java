@@ -303,4 +303,19 @@ public class MemberService {
             .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
     return MemberEmailForKeyDto.builder().email(foundMember.getUsername()).build();
   }
+
+  /**
+   * 회원 탈퇴 처리
+   *
+   * @param memberId 탈퇴 처리할 회원 식별자
+   */
+  @Transactional
+  public void withdraw(Long memberId) {
+
+    Member foundMember =
+            memberRepository
+                    .findByMemberId(memberId)
+                    .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+    foundMember.delete();
+  }
 }
