@@ -61,4 +61,8 @@ public class Member {
     PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     this.password = passwordEncoder.encode(password);
   }
+
+  public void delete() {
+    this.isDeleted = true;
+  }
 }

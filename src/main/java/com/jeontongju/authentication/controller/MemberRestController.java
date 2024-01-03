@@ -1,9 +1,9 @@
 package com.jeontongju.authentication.controller;
 
-import com.jeontongju.authentication.dto.temp.ResponseFormat;
 import com.jeontongju.authentication.dto.request.*;
 import com.jeontongju.authentication.dto.response.JwtTokenResponse;
 import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
+import com.jeontongju.authentication.dto.temp.ResponseFormat;
 import com.jeontongju.authentication.service.MemberService;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -201,6 +201,19 @@ public class MemberRestController {
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("비밀번호 변경 시, 새 비밀번호로 변경 성공")
+                .build());
+  }
+
+  @DeleteMapping("/consumers")
+  public ResponseEntity<ResponseFormat<Void>> withdraw(@RequestHeader Long memberId) {
+
+    memberService.withdraw(memberId);
+    return ResponseEntity.ok()
+        .body(
+            ResponseFormat.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("회원 탈퇴 성공")
                 .build());
   }
 }
