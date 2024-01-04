@@ -1,6 +1,6 @@
 package com.jeontongju.authentication.security.jwt;
 
-import com.jeontongju.authentication.entity.Member;
+import com.jeontongju.authentication.domain.Member;
 import com.jeontongju.authentication.security.MemberDetails;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

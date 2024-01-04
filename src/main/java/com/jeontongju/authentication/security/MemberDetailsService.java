@@ -1,6 +1,6 @@
 package com.jeontongju.authentication.security;
 
-import com.jeontongju.authentication.entity.Member;
+import com.jeontongju.authentication.domain.Member;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
 import com.jeontongju.authentication.repository.MemberRepository;
 import com.jeontongju.authentication.utils.CustomErrMessage;

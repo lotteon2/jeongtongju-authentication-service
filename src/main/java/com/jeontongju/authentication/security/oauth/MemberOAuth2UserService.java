@@ -4,7 +4,7 @@ import com.jeontongju.authentication.dto.response.oauth.OAuth2UserInfo;
 import com.jeontongju.authentication.dto.response.oauth.google.GoogleUserInfo;
 import com.jeontongju.authentication.dto.response.oauth.kakao.KakaoUserInfo;
 import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateBySnsRequestDto;
-import com.jeontongju.authentication.entity.Member;
+import com.jeontongju.authentication.domain.Member;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
 import com.jeontongju.authentication.enums.SnsTypeEnum;
 import com.jeontongju.authentication.exception.MemberNotFoundException;

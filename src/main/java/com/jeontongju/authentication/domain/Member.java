@@ -1,4 +1,4 @@
-package com.jeontongju.authentication.entity;
+package com.jeontongju.authentication.domain;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -41,10 +41,6 @@ public class Member {
 
   @Column(name = "password", nullable = false)
   private String password;
-
-  @Column(name = "is_first_login", nullable = false)
-  @Builder.Default
-  private Boolean isFirstLogin = true;
 
   @Column(name = "is_adult", nullable = false)
   @Builder.Default

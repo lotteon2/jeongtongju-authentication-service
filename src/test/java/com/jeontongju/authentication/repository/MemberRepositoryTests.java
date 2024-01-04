@@ -3,7 +3,7 @@ package com.jeontongju.authentication.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.jeontongju.authentication.entity.Member;
+import com.jeontongju.authentication.domain.Member;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
