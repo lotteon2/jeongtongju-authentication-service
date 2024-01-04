@@ -37,6 +37,7 @@ public class OAuth2AuthenticationFailureHandler implements AuthenticationFailure
             .code(HttpStatus.BAD_REQUEST.value())
             .message(HttpStatus.BAD_REQUEST.name())
             .detail("소셜 로그인 실패: " + exception.getMessage())
+            .failure("DISABLED_MEMBER")
             .build());
   }
 }
