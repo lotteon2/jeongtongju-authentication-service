@@ -1,6 +1,6 @@
 package com.jeontongju.authentication.repository;
 
-import com.jeontongju.authentication.entity.Member;
+import com.jeontongju.authentication.domain.Member;
 import java.util.Optional;
 
 import com.jeontongju.authentication.enums.MemberRoleEnum;

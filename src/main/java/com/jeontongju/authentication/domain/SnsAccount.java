@@ -1,4 +1,4 @@
-package com.jeontongju.authentication.entity;
+package com.jeontongju.authentication.domain;
 
 import javax.persistence.*;
 import lombok.AllArgsConstructor;
