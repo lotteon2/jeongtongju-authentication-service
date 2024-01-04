@@ -7,6 +7,7 @@ import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateRequestDto;
 import com.jeontongju.authentication.dto.temp.SellerInfoForCreateRequestDto;
 import com.jeontongju.authentication.domain.Member;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
+import io.github.bitbox.bitbox.dto.ImpAuthInfoForUpdateDto;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -52,6 +53,15 @@ public class MemberMapper {
       Long consumerId, ImpAuthInfo impAuthInfo) {
 
     return ConsumerInfoForAccountConsolidationDto.builder()
+        .consumerId(consumerId)
+        .name(impAuthInfo.getName())
+        .phoneNumber(impAuthInfo.getPhone())
+        .build();
+  }
+
+  public ImpAuthInfoForUpdateDto toImpAuthInfoDto(Long consumerId, ImpAuthInfo impAuthInfo) {
+
+    return ImpAuthInfoForUpdateDto.builder()
         .consumerId(consumerId)
         .name(impAuthInfo.getName())
         .phoneNumber(impAuthInfo.getPhone())

@@ -31,7 +31,7 @@ public class Auth19Manager {
     impSecret = env.getProperty("store.imp.secret");
   }
 
-  public static ImpAuthInfo authenticate19(String impUid) throws IOException, JSONException {
+  public ImpAuthInfo authenticate19(String impUid) throws IOException, JSONException {
 
     HttpEntity<Map<String, String>> requestEntity;
     Map<String, String> body = new HashMap<>();
@@ -68,7 +68,7 @@ public class Auth19Manager {
     return impAuthResponse.getResponse();
   }
 
-  private static Boolean isAdult(String birthday) {
+  private Boolean isAdult(String birthday) {
     LocalDate birthDate =
         LocalDate.of(
             Integer.parseInt(birthday.substring(0, 4)),
@@ -78,14 +78,14 @@ public class Auth19Manager {
     return yearsGap >= 20;
   }
 
-  private static HttpHeaders getAccessTokenHeaders() {
+  private HttpHeaders getAccessTokenHeaders() {
 
     HttpHeaders headers = new HttpHeaders();
     headers.set("Content-Type", "application/json");
     return headers;
   }
 
-  private static HttpHeaders getAuthInfoHeaders(String accessToken) {
+  private HttpHeaders getAuthInfoHeaders(String accessToken) {
 
     HttpHeaders headers = new HttpHeaders();
     headers.set("Authorization", "Bearer " + accessToken);

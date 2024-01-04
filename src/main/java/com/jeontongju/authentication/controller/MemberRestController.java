@@ -94,8 +94,7 @@ public class MemberRestController {
   }
 
   @GetMapping("/sign-in/oauth2/code/kakao")
-  public ResponseEntity<ResponseFormat<Void>> signInForConsumerBySns(
-      @RequestParam("code") String code) {
+  public ResponseEntity<ResponseFormat<Void>> signInForConsumerBySns(@RequestParam String code) {
 
     memberService.signInForConsumerByKakao(code);
     return ResponseEntity.ok()
@@ -108,8 +107,7 @@ public class MemberRestController {
   }
 
   @GetMapping("/sign-in/oauth2/code/google")
-  public ResponseEntity<ResponseFormat<Void>> signInForConsumerByGoogle(
-      @RequestParam("code") String code) {
+  public ResponseEntity<ResponseFormat<Void>> signInForConsumerByGoogle(@RequestParam String code) {
 
     memberService.signInForConsumerByGoogle(code);
     return ResponseEntity.ok()
@@ -118,6 +116,22 @@ public class MemberRestController {
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("소비자 소셜 로그인 성공 - GOOGLE")
+                .build());
+  }
+
+  @PatchMapping("/consumers/adult-certification")
+  public ResponseEntity<ResponseFormat<Void>> authentication19AfterSnsSignIn(
+      @RequestHeader Long memberId,
+      @RequestBody ImpUidForAdultCertificationRequestDto adultCertificationRequestDto)
+      throws JSONException, IOException {
+
+    memberService.authentication19AfterSnsSignIn(memberId, adultCertificationRequestDto);
+    return ResponseEntity.ok()
+        .body(
+            ResponseFormat.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("성인인증 성공")
                 .build());
   }
 
