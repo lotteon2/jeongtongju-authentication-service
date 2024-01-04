@@ -88,7 +88,7 @@ public class MemberRestControllerAdvice extends ResponseEntityExceptionHandler {
   @ExceptionHandler(AlreadyWithdrawalMemberException.class)
   public ResponseEntity<ResponseFormat<Void>> handleDisabledMember() {
 
-    HttpStatus status = HttpStatus.UNAUTHORIZED;
+    HttpStatus status = HttpStatus.BAD_REQUEST;
     return ResponseEntity.status(status)
         .body(
             ResponseFormat.<Void>builder()
