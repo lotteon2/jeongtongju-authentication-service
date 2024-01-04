@@ -1,5 +1,7 @@
 package com.jeontongju.authentication.service;
 
+import com.jeontongju.authentication.domain.Member;
+import com.jeontongju.authentication.domain.SnsAccount;
 import com.jeontongju.authentication.dto.MailInfoDto;
 import com.jeontongju.authentication.dto.request.*;
 import com.jeontongju.authentication.dto.response.ImpAuthInfo;
@@ -9,8 +11,6 @@ import com.jeontongju.authentication.dto.response.oauth.google.GoogleOAuthInfo;
 import com.jeontongju.authentication.dto.response.oauth.kakao.KakaoOAuthInfo;
 import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateBySnsRequestDto;
 import com.jeontongju.authentication.dto.temp.MemberEmailForKeyDto;
-import com.jeontongju.authentication.domain.Member;
-import com.jeontongju.authentication.domain.SnsAccount;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
 import com.jeontongju.authentication.enums.SnsTypeEnum;
 import com.jeontongju.authentication.exception.*;
@@ -60,6 +60,7 @@ public class MemberService {
   private final MemberMapper memberMapper;
   private final RedisTemplate<String, String> redisTemplate;
   private final JwtTokenProvider jwtTokenProvider;
+  private final Auth19Manager auth19Manager;
 
   @Value("${jwt.secret}")
   private String secret;
@@ -96,7 +97,7 @@ public class MemberService {
   public void signupForConsumer(ConsumerInfoForSignUpRequestDto signupRequestDto)
       throws JSONException, IOException {
 
-    ImpAuthInfo impAuthInfo = Auth19Manager.authenticate19(signupRequestDto.getImpUid());
+    ImpAuthInfo impAuthInfo = auth19Manager.authenticate19(signupRequestDto.getImpUid());
 
     Member savedConsumer = null;
     if (signupRequestDto.getIsMerge()) { // 계정 통합 시
@@ -131,7 +132,7 @@ public class MemberService {
       throws JSONException, IOException {
 
     // 성인 인증
-    ImpAuthInfo impAuthInfo = Auth19Manager.authenticate19(signUpRequestDto.getImpUid());
+    ImpAuthInfo impAuthInfo = auth19Manager.authenticate19(signUpRequestDto.getImpUid());
 
     Member savedSeller =
         memberRepository.save(
@@ -314,9 +315,24 @@ public class MemberService {
   public void withdraw(Long memberId) {
 
     Member foundMember =
-            memberRepository
-                    .findByMemberId(memberId)
-                    .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+        memberRepository
+            .findByMemberId(memberId)
+            .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
     foundMember.delete();
+  }
+
+  /**
+   * 최초 소셜 로그인 후, 성인인증 처리
+   *
+   * @param memberId 로그인 한 회원 식별자
+   */
+  public void authentication19AfterSnsSignIn(
+      Long memberId, ImpUidForAdultCertificationRequestDto adultCertificationRequestDto)
+      throws JSONException, IOException {
+
+    ImpAuthInfo impAuthInfo =
+        auth19Manager.authenticate19(adultCertificationRequestDto.getImpUid());
+    consumerClientService.updateConsumerByAuth19(
+        memberMapper.toImpAuthInfoDto(memberId, impAuthInfo));
   }
 }

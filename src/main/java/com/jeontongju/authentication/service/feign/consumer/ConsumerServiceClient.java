@@ -1,9 +1,7 @@
 package com.jeontongju.authentication.service.feign.consumer;
 
-import com.jeontongju.authentication.dto.temp.ConsumerInfoForAccountConsolidationDto;
-import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateBySnsRequestDto;
-import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateRequestDto;
-import com.jeontongju.authentication.dto.temp.FeignFormat;
+import com.jeontongju.authentication.dto.temp.*;
+import io.github.bitbox.bitbox.dto.ImpAuthInfoForUpdateDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -21,4 +19,7 @@ public interface ConsumerServiceClient {
   @PutMapping("/consumers/account-consolidation")
   FeignFormat<Void> updateConsumerForAccountConsolidation(
       ConsumerInfoForAccountConsolidationDto accountConsolidationDto);
+
+  @PutMapping("/consumers/adult-certification")
+  FeignFormat<Void> updateConsumerByAuth19(ImpAuthInfoForUpdateDto impAuthInfoDto);
 }
