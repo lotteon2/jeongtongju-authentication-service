@@ -90,7 +90,7 @@ public class MemberOAuth2UserService extends DefaultOAuth2UserService {
               .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
 
       if (member.getIsDeleted()) {
-        throw new AlreadyWithdrawalMemberException(CustomErrMessage.DISABLED_MEMBER);
+        throw new OAuth2AuthenticationException(CustomErrMessage.DISABLED_MEMBER);
       }
     }
 
