@@ -117,19 +117,21 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
     //
     //    }
 
-    CookieGenerator cg = new CookieGenerator();
-    cg.setCookieName("refreshToken");
-    cg.setCookieMaxAge(21600000);
-    cg.setCookiePath("/");
-    cg.setCookieSecure(true);
+//    CookieGenerator cg = new CookieGenerator();
+//    cg.setCookieName("refreshToken");
+//    cg.setCookieMaxAge(21600000);
+//    cg.setCookiePath("/");
+//    cg.setCookieSecure(true);
+//
+//    cg.addCookie(response, jwtRefreshToken);
+    Cookie cookie = new Cookie("refreshToken", jwtRefreshToken);
+    cookie.setMaxAge(21600000);
+    cookie.setSecure(true);
+    cookie.setHttpOnly(true);
+    cookie.setPath("/");
+    cookie.setDomain("consumer.jeontongju-dev.shop");
 
-    cg.addCookie(response, jwtRefreshToken);
-//    Cookie cookie = new Cookie("refreshToken", jwtRefreshToken);
-//    cookie.setMaxAge(21600000);
-//    cookie.setHttpOnly(false);
-//    cookie.setPath("/");
-//    cookie.setSecure(true);
-//    response.addCookie(cookie);
+    response.addCookie(cookie);
 
     response.setHeader(
             "Set-Cookie",
