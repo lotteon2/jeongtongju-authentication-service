@@ -3,14 +3,17 @@ package com.jeontongju.authentication.mapper;
 import com.jeontongju.authentication.dto.request.SellerInfoForSignUpRequestDto;
 import com.jeontongju.authentication.dto.response.ImpAuthInfo;
 import com.jeontongju.authentication.dto.temp.ConsumerInfoForAccountConsolidationDto;
-import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateRequestDto;
 import com.jeontongju.authentication.dto.temp.SellerInfoForCreateRequestDto;
 import com.jeontongju.authentication.domain.Member;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
+import io.github.bitbox.bitbox.dto.ConsumerInfoForCreateRequestDto;
 import io.github.bitbox.bitbox.dto.ImpAuthInfoForUpdateDto;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
+import java.time.Period;
 
 @Component
 public class MemberMapper {
@@ -27,10 +30,17 @@ public class MemberMapper {
 
   public ConsumerInfoForCreateRequestDto toConsumerCreateDto(
       Long consumerId, String email, ImpAuthInfo impAuthInfo) {
+
+    String birthday = impAuthInfo.getBirthday();
+    LocalDate birthdate = LocalDate.parse(birthday);
+    Period period = Period.between(birthdate, LocalDate.now());
+    int age = period.getYears();
+
     return ConsumerInfoForCreateRequestDto.builder()
         .consumerId(consumerId)
         .email(email)
         .name(impAuthInfo.getName())
+        .age(age)
         .phoneNumber(impAuthInfo.getPhone())
         .build();
   }

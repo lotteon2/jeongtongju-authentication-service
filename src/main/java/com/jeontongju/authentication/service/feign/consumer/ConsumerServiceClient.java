@@ -1,6 +1,7 @@
 package com.jeontongju.authentication.service.feign.consumer;
 
 import com.jeontongju.authentication.dto.temp.*;
+import io.github.bitbox.bitbox.dto.ConsumerInfoForCreateRequestDto;
 import io.github.bitbox.bitbox.dto.ImpAuthInfoForUpdateDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
