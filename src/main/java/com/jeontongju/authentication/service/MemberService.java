@@ -209,6 +209,7 @@ public class MemberService {
     log.info("MemberService's renewAccessTokenByRefreshToken executes..");
     try {
       log.info("redisTemplate starts..");
+      log.info("[secret]: " + secret);
       ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();
 
       byte[] keyBytes = Decoders.BASE64.decode(secret);
@@ -216,16 +217,16 @@ public class MemberService {
 
       Claims claims = checkValid(refreshToken, key);
       String memberId = claims.get("memberId", String.class);
+      log.info("[memberId]: " + memberId);
       Member member =
           memberRepository
               .findByMemberId(Long.parseLong(memberId))
-              .orElseThrow(
-                  () ->
-                      new MalformedRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN));
+              .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
       String refreshKey = member.getMemberRoleEnum().name() + "_" + member.getUsername();
-      log.info("redisTemplate.opsForValue get..");
+      log.info("[refreshKey]: " + refreshKey);
+      log.info("[redisTemplate.opsForValue get..]");
       String refreshTokenInRedis = stringStringValueOperations.get(refreshKey);
-      log.info("redisTemplate Successful end!");
+      log.info("[redisTemplate Successful end]!");
 
       // refreshtoken이 탈취되었을 가능성이 있을지 확인
       if (!refreshToken.equals(refreshTokenInRedis)) {
@@ -265,6 +266,7 @@ public class MemberService {
           SignatureException,
           MalformedJwtException {
 
+    log.info("[MemberService's checkValid executes]");
     return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwt).getBody();
   }
 
