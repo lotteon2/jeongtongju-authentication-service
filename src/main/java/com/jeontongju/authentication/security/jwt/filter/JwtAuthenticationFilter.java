@@ -106,17 +106,23 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
     String jwtRefreshToken =
         jwtTokenProvider.createRefreshToken(memberDetails.getMember().getMemberId());
 
-//    JwtAuthenticationToken jwtAuthenticationToken = (JwtAuthenticationToken) authResult;
-//    String platform = jwtAuthenticationToken.getPlatform();
-//
-//    //TODO
-//    if (platform != null && platform.equals("Windows")) {
-//
-//    } else if (platform != null && (platform.equals("iOS") || platform.equals("Android"))) {
-//
-//    }
+    //    JwtAuthenticationToken jwtAuthenticationToken = (JwtAuthenticationToken) authResult;
+    //    String platform = jwtAuthenticationToken.getPlatform();
+    //
+    //    //TODO
+    //    if (platform != null && platform.equals("Windows")) {
+    //
+    //    } else if (platform != null && (platform.equals("iOS") || platform.equals("Android"))) {
+    //
+    //    }
 
     response.addHeader("Authorization", "Bearer " + jwtToken);
+
+    response.setHeader(
+        "Set-Cookie",
+        "refreshToken="
+            + jwtRefreshToken
+            + "; Max-Age=21600000; HttpOnly; Path=/; SameSite=None; Secure");
 
     Cookie cookie = new Cookie("refreshToken", jwtRefreshToken);
     cookie.setMaxAge(21600000);
@@ -125,7 +131,7 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
     cookie.setSecure(true);
     response.addCookie(cookie);
 
-//    response.flushBuffer();
+    //    response.flushBuffer();
 
     response.setContentType("application/json; charset=UTF-8");
     response.setCharacterEncoding("UTF-8");
