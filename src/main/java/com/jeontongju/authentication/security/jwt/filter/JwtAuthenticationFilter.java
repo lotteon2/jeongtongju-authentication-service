@@ -116,8 +116,6 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
     //
     //    }
 
-    response.addHeader("Authorization", "Bearer " + jwtToken);
-
     response.setHeader(
         "Set-Cookie",
         "refreshToken="
@@ -131,7 +129,7 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
     cookie.setSecure(true);
     response.addCookie(cookie);
 
-    //    response.flushBuffer();
+    response.addHeader("Authorization", "Bearer " + jwtToken);
 
     response.setContentType("application/json; charset=UTF-8");
     response.setCharacterEncoding("UTF-8");
