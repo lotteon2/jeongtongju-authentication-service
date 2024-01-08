@@ -134,6 +134,7 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
 
     ResponseCookie cookie =
         ResponseCookie.from("refreshToken", jwtRefreshToken)
+            .domain(".jeontongju-dev.shop")
             .path("/")
             .sameSite("None")
             .httpOnly(false)
