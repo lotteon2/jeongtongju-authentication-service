@@ -19,6 +19,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
@@ -117,27 +118,30 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
     //
     //    }
 
-//    CookieGenerator cg = new CookieGenerator();
-//    cg.setCookieName("refreshToken");
-//    cg.setCookieMaxAge(21600000);
-//    cg.setCookiePath("/");
-//    cg.setCookieSecure(true);
-//
-//    cg.addCookie(response, jwtRefreshToken);
-    Cookie cookie = new Cookie("refreshToken", jwtRefreshToken);
-    cookie.setMaxAge(21600000);
-    cookie.setSecure(true);
-    cookie.setHttpOnly(true);
-    cookie.setPath("/");
-    cookie.setDomain("consumer.jeontongju-dev.shop");
+    //    CookieGenerator cg = new CookieGenerator();
+    //    cg.setCookieName("refreshToken");
+    //    cg.setCookieMaxAge(21600000);
+    //    cg.setCookiePath("/");
+    //    cg.setCookieSecure(true);
+    //
+    //    cg.addCookie(response, jwtRefreshToken);
+    //    Cookie cookie = new Cookie("refreshToken", jwtRefreshToken);
+    //    cookie.setMaxAge(21600000);
+    //    cookie.setSecure(true);
+    //    cookie.setHttpOnly(true);
+    //    cookie.setPath("/");
+    //    cookie.setDomain("consumer.jeontongju-dev.shop");
 
-    response.addCookie(cookie);
+    ResponseCookie cookie =
+        ResponseCookie.from("refreshToken", jwtRefreshToken)
+            .path("/")
+            .sameSite("None")
+            .httpOnly(false)
+            .secure(true)
+            .maxAge(21600000)
+            .build();
 
-    response.setHeader(
-            "Set-Cookie",
-            "refreshToken="
-                    + jwtRefreshToken
-                    + "; Max-Age=21600000; Path=/; SameSite=None; Secure");
+    response.addHeader("Set-Cookie", cookie.toString());
 
     response.addHeader("Authorization", "Bearer " + jwtToken);
 
