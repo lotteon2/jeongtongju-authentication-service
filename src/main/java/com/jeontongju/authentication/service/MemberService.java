@@ -93,13 +93,20 @@ public class MemberService {
     return MailAuthCodeResponseDto.builder().authCode(mailInfoDto.getValidCode()).build();
   }
 
+  /**
+   * 회원 가입 (소비자)
+   *
+   * @param signupRequestDto 회원가입 시 필요한 정보 (이메일, 비밀번호, imp_uid)
+   * @throws JSONException
+   * @throws IOException
+   */
   @Transactional
   public void signupForConsumer(ConsumerInfoForSignUpRequestDto signupRequestDto)
       throws JSONException, IOException {
 
     ImpAuthInfo impAuthInfo = auth19Manager.authenticate19(signupRequestDto.getImpUid());
 
-    Member savedConsumer = null;
+    Member savedConsumer;
     if (signupRequestDto.getIsMerge()) { // 계정 통합 시
 
       savedConsumer =
