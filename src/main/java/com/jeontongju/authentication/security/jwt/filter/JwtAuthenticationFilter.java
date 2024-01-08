@@ -120,7 +120,7 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
 
     Cookie cookie = new Cookie("refreshToken", jwtRefreshToken);
     cookie.setMaxAge(21600000);
-    cookie.setHttpOnly(true);
+    cookie.setHttpOnly(false);
     cookie.setPath("/");
     response.addCookie(cookie);
     response.flushBuffer();
