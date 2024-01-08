@@ -122,10 +122,13 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
     cookie.setMaxAge(21600000);
     cookie.setHttpOnly(false);
     cookie.setPath("/");
+    cookie.setSecure(true);
     response.addCookie(cookie);
-    response.flushBuffer();
-    response.setCharacterEncoding("UTF-8");
+
+//    response.flushBuffer();
+
     response.setContentType("application/json; charset=UTF-8");
+    response.setCharacterEncoding("UTF-8");
 
     JwtAccessTokenResponse jwtAccessTokenResponse =
         JwtAccessTokenResponse.builder().accessToken("Bearer " + jwtToken).build();
