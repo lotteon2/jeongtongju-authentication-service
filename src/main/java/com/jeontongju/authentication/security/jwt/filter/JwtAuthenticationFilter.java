@@ -137,7 +137,7 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
             .domain(".jeontongju-dev.shop")
             .path("/")
             .sameSite("None")
-            .httpOnly(false)
+            .httpOnly(true)
             .secure(true)
             .maxAge(21600000)
             .build();
