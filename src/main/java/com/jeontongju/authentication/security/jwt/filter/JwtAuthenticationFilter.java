@@ -27,6 +27,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.util.CookieGenerator;
 
 @Slf4j
 public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
@@ -116,18 +117,25 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
     //
     //    }
 
-    response.setHeader(
-        "Set-Cookie",
-        "refreshToken="
-            + jwtRefreshToken
-            + "; Max-Age=21600000; HttpOnly; Path=/; SameSite=None; Secure");
+    CookieGenerator cg = new CookieGenerator();
+    cg.setCookieName("refreshToken");
+    cg.setCookieMaxAge(21600000);
+    cg.setCookiePath("/");
+    cg.setCookieSecure(true);
 
-    Cookie cookie = new Cookie("refreshToken", jwtRefreshToken);
-    cookie.setMaxAge(21600000);
-    cookie.setHttpOnly(false);
-    cookie.setPath("/");
-    cookie.setSecure(true);
-    response.addCookie(cookie);
+    cg.addCookie(response, jwtRefreshToken);
+//    Cookie cookie = new Cookie("refreshToken", jwtRefreshToken);
+//    cookie.setMaxAge(21600000);
+//    cookie.setHttpOnly(false);
+//    cookie.setPath("/");
+//    cookie.setSecure(true);
+//    response.addCookie(cookie);
+
+    response.setHeader(
+            "Set-Cookie",
+            "refreshToken="
+                    + jwtRefreshToken
+                    + "; Max-Age=21600000; Path=/; SameSite=None; Secure");
 
     response.addHeader("Authorization", "Bearer " + jwtToken);
 
