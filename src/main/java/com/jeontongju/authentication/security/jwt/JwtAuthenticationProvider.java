@@ -29,14 +29,15 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
   @Override
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 
-    log.info("JwtAuthenticationProvider's authenticate executes");
+    log.info("[JwtAuthenticationProvider's authenticate executes]");
     String username = authentication.getName();
     String password = authentication.getCredentials().toString();
 
     JwtAuthenticationToken jwtAuthenticationToken = (JwtAuthenticationToken) authentication;
     String memberRole = jwtAuthenticationToken.getRole();
 
-    MemberDetails memberDetails = memberDetailsService.loadUserByUsername(username + "_" + memberRole);
+    MemberDetails memberDetails =
+        memberDetailsService.loadUserByUsername(username + "_" + memberRole);
 
     // 탈퇴한 회원
     if (!memberDetails.isEnabled()) {
@@ -58,7 +59,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     }
 
     return JwtAuthenticationToken.authenticated(
-        memberDetails, null, memberDetails.getAuthorities());
+        memberDetails, null, memberDetails.getAuthorities(), jwtAuthenticationToken.getPlatform());
   }
 
   @Override

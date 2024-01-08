@@ -51,11 +51,13 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
   public Authentication attemptAuthentication(
       HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
+    String platform = request.getHeader("Sec-Ch-Ua-Platform");
+
     if (isAlreadyAuthenticated()) {
       throw new DuplicateAuthenticationException();
     }
 
-    log.info("JwtAuthenticationFilter: attempt sign-in...");
+    log.info("[JwtAuthenticationFilter's attemptAuthentication executes]: attempt to sign-in..");
 
     try {
       MemberInfoForSignInRequestDto signInRequestDto =
@@ -65,12 +67,13 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
           JwtAuthenticationToken.unauthenticated(
               signInRequestDto.getEmail(),
               signInRequestDto.getPassword(),
-              signInRequestDto.getMemberRole().name());
+              signInRequestDto.getMemberRole().name(),
+              platform);
 
-      log.info("AuthenticationManager's authenticate executes");
+      log.info("[AuthenticationManager's authenticate executes]");
       return this.getAuthenticationManager().authenticate(jwtAuthenticationToken);
     } catch (IOException e) {
-      log.info("Authentication Fail!");
+      log.error("[Authentication Fail]={}", e.getMessage());
       throw new AuthenticationServiceException("잘못된 JSON 요청 형식입니다.");
     }
   }
@@ -97,11 +100,21 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
       Authentication authResult)
       throws IOException {
 
-    log.info("Successful sign-in!");
+    log.info("[Successful sign-in]!!");
     String jwtToken = jwtTokenProvider.createToken(authResult);
     MemberDetails memberDetails = (MemberDetails) authResult.getPrincipal();
     String jwtRefreshToken =
         jwtTokenProvider.createRefreshToken(memberDetails.getMember().getMemberId());
+
+//    JwtAuthenticationToken jwtAuthenticationToken = (JwtAuthenticationToken) authResult;
+//    String platform = jwtAuthenticationToken.getPlatform();
+//
+//    //TODO
+//    if (platform != null && platform.equals("Windows")) {
+//
+//    } else if (platform != null && (platform.equals("iOS") || platform.equals("Android"))) {
+//
+//    }
 
     response.addHeader("Authorization", "Bearer " + jwtToken);
 
@@ -110,7 +123,7 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
     cookie.setHttpOnly(true);
     cookie.setPath("/");
     response.addCookie(cookie);
-
+    response.flushBuffer();
     response.setCharacterEncoding("UTF-8");
     response.setContentType("application/json; charset=UTF-8");
 
