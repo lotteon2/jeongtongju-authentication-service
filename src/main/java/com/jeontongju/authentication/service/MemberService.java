@@ -208,6 +208,7 @@ public class MemberService {
 
     log.info("MemberService's renewAccessTokenByRefreshToken executes..");
     try {
+      log.info("[refreshToken]: " + refreshToken);
       log.info("redisTemplate starts..");
       log.info("[secret]: " + secret);
       ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();

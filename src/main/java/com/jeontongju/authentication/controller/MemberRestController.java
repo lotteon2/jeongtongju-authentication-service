@@ -137,7 +137,11 @@ public class MemberRestController {
 
   @PutMapping("/access-token")
   public ResponseEntity<ResponseFormat<String>> issueAccessTokenByRefreshToken(
-      HttpServletRequest request, HttpServletResponse response) {
+      HttpServletRequest request,
+      HttpServletResponse response,
+      @RequestBody RefreshTokenRequestDto refreshTokenRequestDto) {
+
+
 
     Cookie[] cookies = request.getCookies();
 
@@ -153,7 +157,9 @@ public class MemberRestController {
         }
       }
     }
+    refreshToken = refreshTokenRequestDto.getCookie();
 
+    log.info("[refreshToken]: " + refreshToken);
     log.info("쿠키 확인 완료");
 
     log.info("MemberController's issueAccessTokenByRefreshToken executes..");
