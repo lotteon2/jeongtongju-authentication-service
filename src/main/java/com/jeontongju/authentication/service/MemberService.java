@@ -14,12 +14,13 @@ import com.jeontongju.authentication.dto.temp.MemberEmailForKeyDto;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
 import com.jeontongju.authentication.enums.SnsTypeEnum;
 import com.jeontongju.authentication.exception.*;
+import com.jeontongju.authentication.feign.auction.AuctionClientService;
 import com.jeontongju.authentication.mapper.MemberMapper;
 import com.jeontongju.authentication.repository.MemberRepository;
 import com.jeontongju.authentication.repository.SnsAccountRepository;
 import com.jeontongju.authentication.security.jwt.JwtTokenProvider;
-import com.jeontongju.authentication.service.feign.consumer.ConsumerClientService;
-import com.jeontongju.authentication.service.feign.seller.SellerClientService;
+import com.jeontongju.authentication.feign.consumer.ConsumerClientService;
+import com.jeontongju.authentication.feign.seller.SellerClientService;
 import com.jeontongju.authentication.utils.Auth19Manager;
 import com.jeontongju.authentication.utils.CustomErrMessage;
 import com.jeontongju.authentication.utils.MailManager;
@@ -33,6 +34,8 @@ import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.time.LocalDate;
+import java.util.List;
 import javax.crypto.SecretKey;
 import javax.mail.MessagingException;
 import javax.persistence.EntityNotFoundException;
@@ -57,6 +60,7 @@ public class MemberService {
   private final SnsAccountRepository snsAccountRepository;
   private final ConsumerClientService consumerClientService;
   private final SellerClientService sellerClientService;
+  private final AuctionClientService auctionClientService;
   private final MemberMapper memberMapper;
   private final RedisTemplate<String, String> redisTemplate;
   private final JwtTokenProvider jwtTokenProvider;
@@ -203,6 +207,23 @@ public class MemberService {
             savedMember.getMemberId(), email, googleOAuthInfo.getPicture()));
   }
 
+  /**
+   * 소셜 로그인으로만 계정이 존재하는지에 대한 여부
+   *
+   * @param memberId 확인할 회원의 식별자
+   * @return {Boolean} 해당 회원 소셜 계정(만) 존재 여부
+   */
+  public Boolean isExistSocialAccount(Long memberId) {
+
+    Member foundMember = getMember(memberId);
+    // 소셜 계정이 존재하고 계정 통합이 되지 않았을 경우
+    if (!foundMember.getSnsAccountList().isEmpty() && foundMember.getPassword().isEmpty()) {
+      return true;
+    }
+
+    return false;
+  }
+
   @Transactional
   public JwtTokenResponse renewAccessTokenByRefreshToken(String refreshToken) {
 
@@ -273,10 +294,7 @@ public class MemberService {
 
   public void confirmOriginPassword(Long memberId, PasswordForCheckRequestDto checkRequestDto) {
 
-    Member foundMember =
-        memberRepository
-            .findByMemberId(memberId)
-            .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+    Member foundMember = getMember(memberId);
 
     String passwordInDB = foundMember.getPassword();
     PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -300,19 +318,13 @@ public class MemberService {
   public void modifyPasswordForSimpleChange(
       Long memberId, PasswordForSimpleChangeRequestDto simpleChangeRequestDto) {
 
-    Member foundMember =
-        memberRepository
-            .findByMemberId(memberId)
-            .orElseThrow(() -> new ConsumerNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+    Member foundMember = getMember(memberId);
     foundMember.assignPassword(simpleChangeRequestDto.getNewPassword());
   }
 
   public MemberEmailForKeyDto getMemberEmailForKey(Long memberId) {
 
-    Member foundMember =
-        memberRepository
-            .findByMemberId(memberId)
-            .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+    Member foundMember = getMember(memberId);
     return MemberEmailForKeyDto.builder().email(foundMember.getUsername()).build();
   }
 
@@ -324,10 +336,7 @@ public class MemberService {
   @Transactional
   public void withdraw(Long memberId) {
 
-    Member foundMember =
-        memberRepository
-            .findByMemberId(memberId)
-            .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+    Member foundMember = getMember(memberId);
     foundMember.delete();
   }
 
@@ -344,5 +353,38 @@ public class MemberService {
         auth19Manager.authenticate19(adultCertificationRequestDto.getImpUid());
     consumerClientService.updateConsumerByAuth19(
         memberMapper.toImpAuthInfoDto(memberId, impAuthInfo));
+  }
+
+  @Transactional
+  public void getSiteSituation(MemberRoleEnum memberRole) {
+
+    if (memberRole != MemberRoleEnum.ROLE_ADMIN) {
+      throw new NotAdminAccessDeniedException(CustomErrMessage.N0T_ADMIN_ACCESS_DENIED);
+    }
+
+    Long countOfApprovalWaitingSeller = sellerClientService.getCountOfApprovalWaitingSeller();
+    Long countOfApprovalWaitingProduct = auctionClientService.getCountOfApprovalWaitingProduct();
+    LocalDate currentDate = LocalDate.now();
+    // 신규 유저(오늘)
+    List<Member> registerConsumerAtToday =
+        memberRepository.findByMemberRoleEnumAndCreatedAtContaining(
+            MemberRoleEnum.ROLE_CONSUMER, currentDate);
+    // 신규 셀러(오늘, 미승인 포함)
+    List<Member> registerSellerAtToday =
+        memberRepository.findByMemberRoleEnumAndCreatedAtContaining(
+            MemberRoleEnum.ROLE_SELLER, currentDate);
+    // TODO 탈퇴 유저 조회 로직 작성
+  }
+
+  /**
+   * memberId로 해당 Member객체 찾기(공통화)
+   *
+   * @param memberId 회원 식별자
+   * @return {Member} 찾은 회원 객체
+   */
+  private Member getMember(Long memberId) {
+    return memberRepository
+        .findByMemberId(memberId)
+        .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
   }
 }

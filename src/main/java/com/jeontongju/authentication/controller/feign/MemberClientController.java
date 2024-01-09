@@ -5,9 +5,7 @@ import com.jeontongju.authentication.dto.temp.MemberEmailForKeyDto;
 import com.jeontongju.authentication.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,6 +20,15 @@ public class MemberClientController {
     return FeignFormat.<MemberEmailForKeyDto>builder()
         .code(HttpStatus.OK.value())
         .data(memberEmailForKeyDto)
+        .build();
+  }
+
+  @GetMapping("/members/{memberId}/sns-Account/exist")
+  public FeignFormat<Boolean> isExistSocialAccount(@PathVariable Long memberId) {
+
+    return FeignFormat.<Boolean>builder()
+        .code(HttpStatus.OK.value())
+        .data(memberService.isExistSocialAccount(memberId))
         .build();
   }
 }

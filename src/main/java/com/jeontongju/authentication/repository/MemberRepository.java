@@ -1,6 +1,9 @@
 package com.jeontongju.authentication.repository;
 
 import com.jeontongju.authentication.domain.Member;
+
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import com.jeontongju.authentication.enums.MemberRoleEnum;
@@ -13,4 +16,7 @@ public interface MemberRepository extends JpaRepository<Member, String> {
   Optional<Member> findByMemberId(Long memberId);
 
   Optional<Member> findByUsernameAndMemberRoleEnum(String email, MemberRoleEnum memberRole);
+
+  List<Member> findByMemberRoleEnumAndCreatedAtContaining(
+      MemberRoleEnum memberRole, LocalDate currentDate);
 }
