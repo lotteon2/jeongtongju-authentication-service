@@ -19,6 +19,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
@@ -27,6 +28,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.util.CookieGenerator;
 
 @Slf4j
 public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
@@ -51,11 +53,13 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
   public Authentication attemptAuthentication(
       HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
+    String platform = request.getHeader("Sec-Ch-Ua-Platform");
+
     if (isAlreadyAuthenticated()) {
       throw new DuplicateAuthenticationException();
     }
 
-    log.info("JwtAuthenticationFilter: attempt sign-in...");
+    log.info("[JwtAuthenticationFilter's attemptAuthentication executes]: attempt to sign-in..");
 
     try {
       MemberInfoForSignInRequestDto signInRequestDto =
@@ -65,12 +69,13 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
           JwtAuthenticationToken.unauthenticated(
               signInRequestDto.getEmail(),
               signInRequestDto.getPassword(),
-              signInRequestDto.getMemberRole().name());
+              signInRequestDto.getMemberRole().name(),
+              platform);
 
-      log.info("AuthenticationManager's authenticate executes");
+      log.info("[AuthenticationManager's authenticate executes]");
       return this.getAuthenticationManager().authenticate(jwtAuthenticationToken);
     } catch (IOException e) {
-      log.info("Authentication Fail!");
+      log.error("[Authentication Fail]={}", e.getMessage());
       throw new AuthenticationServiceException("잘못된 JSON 요청 형식입니다.");
     }
   }
@@ -97,22 +102,52 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
       Authentication authResult)
       throws IOException {
 
-    log.info("Successful sign-in!");
+    log.info("[Successful sign-in]!!");
     String jwtToken = jwtTokenProvider.createToken(authResult);
     MemberDetails memberDetails = (MemberDetails) authResult.getPrincipal();
     String jwtRefreshToken =
         jwtTokenProvider.createRefreshToken(memberDetails.getMember().getMemberId());
 
+    //    JwtAuthenticationToken jwtAuthenticationToken = (JwtAuthenticationToken) authResult;
+    //    String platform = jwtAuthenticationToken.getPlatform();
+    //
+    //    //TODO
+    //    if (platform != null && platform.equals("Windows")) {
+    //
+    //    } else if (platform != null && (platform.equals("iOS") || platform.equals("Android"))) {
+    //
+    //    }
+
+    //    CookieGenerator cg = new CookieGenerator();
+    //    cg.setCookieName("refreshToken");
+    //    cg.setCookieMaxAge(21600000);
+    //    cg.setCookiePath("/");
+    //    cg.setCookieSecure(true);
+    //
+    //    cg.addCookie(response, jwtRefreshToken);
+    //    Cookie cookie = new Cookie("refreshToken", jwtRefreshToken);
+    //    cookie.setMaxAge(21600000);
+    //    cookie.setSecure(true);
+    //    cookie.setHttpOnly(true);
+    //    cookie.setPath("/");
+    //    cookie.setDomain("consumer.jeontongju-dev.shop");
+
+    ResponseCookie cookie =
+        ResponseCookie.from("refreshToken", jwtRefreshToken)
+            .domain(".jeontongju-dev.shop")
+            .path("/")
+            .sameSite("None")
+            .httpOnly(true)
+            .secure(true)
+            .maxAge(21600000)
+            .build();
+
+    response.addHeader("Set-Cookie", cookie.toString());
+
     response.addHeader("Authorization", "Bearer " + jwtToken);
 
-    Cookie cookie = new Cookie("refreshToken", jwtRefreshToken);
-    cookie.setMaxAge(21600000);
-    cookie.setHttpOnly(true);
-    cookie.setPath("/");
-    response.addCookie(cookie);
-
-    response.setCharacterEncoding("UTF-8");
     response.setContentType("application/json; charset=UTF-8");
+    response.setCharacterEncoding("UTF-8");
 
     JwtAccessTokenResponse jwtAccessTokenResponse =
         JwtAccessTokenResponse.builder().accessToken("Bearer " + jwtToken).build();

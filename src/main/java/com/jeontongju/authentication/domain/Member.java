@@ -1,4 +1,4 @@
-package com.jeontongju.authentication.entity;
+package com.jeontongju.authentication.domain;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -42,10 +42,6 @@ public class Member {
   @Column(name = "password", nullable = false)
   private String password;
 
-  @Column(name = "is_first_login", nullable = false)
-  @Builder.Default
-  private Boolean isFirstLogin = true;
-
   @Column(name = "is_adult", nullable = false)
   @Builder.Default
   private Boolean isAdult = false;
@@ -60,5 +56,9 @@ public class Member {
   public void assignPassword(String password) {
     PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     this.password = passwordEncoder.encode(password);
+  }
+
+  public void delete() {
+    this.isDeleted = true;
   }
 }

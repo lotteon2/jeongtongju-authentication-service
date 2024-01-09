@@ -2,7 +2,8 @@ package com.jeontongju.authentication.service.feign.consumer;
 
 import com.jeontongju.authentication.dto.temp.ConsumerInfoForAccountConsolidationDto;
 import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateBySnsRequestDto;
-import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateRequestDto;
+import io.github.bitbox.bitbox.dto.ConsumerInfoForCreateRequestDto;
+import io.github.bitbox.bitbox.dto.ImpAuthInfoForUpdateDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,8 +27,15 @@ public class ConsumerClientService {
   }
 
   @Transactional
-  public void updateConsumerForAccountConsolidation(ConsumerInfoForAccountConsolidationDto accountConsolidationDto) {
+  public void updateConsumerForAccountConsolidation(
+      ConsumerInfoForAccountConsolidationDto accountConsolidationDto) {
 
     consumerServiceClient.updateConsumerForAccountConsolidation(accountConsolidationDto);
+  }
+
+  @Transactional
+  public void updateConsumerByAuth19(ImpAuthInfoForUpdateDto impAuthInfoDto) {
+
+    consumerServiceClient.updateConsumerByAuth19(impAuthInfoDto);
   }
 }

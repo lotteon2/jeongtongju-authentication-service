@@ -1,9 +1,9 @@
 package com.jeontongju.authentication.controller;
 
-import com.jeontongju.authentication.dto.temp.ResponseFormat;
 import com.jeontongju.authentication.dto.request.*;
 import com.jeontongju.authentication.dto.response.JwtTokenResponse;
 import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
+import com.jeontongju.authentication.dto.temp.ResponseFormat;
 import com.jeontongju.authentication.service.MemberService;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -94,8 +94,7 @@ public class MemberRestController {
   }
 
   @GetMapping("/sign-in/oauth2/code/kakao")
-  public ResponseEntity<ResponseFormat<Void>> signInForConsumerBySns(
-      @RequestParam("code") String code) {
+  public ResponseEntity<ResponseFormat<Void>> signInForConsumerBySns(@RequestParam String code) {
 
     memberService.signInForConsumerByKakao(code);
     return ResponseEntity.ok()
@@ -108,8 +107,7 @@ public class MemberRestController {
   }
 
   @GetMapping("/sign-in/oauth2/code/google")
-  public ResponseEntity<ResponseFormat<Void>> signInForConsumerByGoogle(
-      @RequestParam("code") String code) {
+  public ResponseEntity<ResponseFormat<Void>> signInForConsumerByGoogle(@RequestParam String code) {
 
     memberService.signInForConsumerByGoogle(code);
     return ResponseEntity.ok()
@@ -121,9 +119,29 @@ public class MemberRestController {
                 .build());
   }
 
+  @PatchMapping("/consumers/adult-certification")
+  public ResponseEntity<ResponseFormat<Void>> authentication19AfterSnsSignIn(
+      @RequestHeader Long memberId,
+      @RequestBody ImpUidForAdultCertificationRequestDto adultCertificationRequestDto)
+      throws JSONException, IOException {
+
+    memberService.authentication19AfterSnsSignIn(memberId, adultCertificationRequestDto);
+    return ResponseEntity.ok()
+        .body(
+            ResponseFormat.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("성인인증 성공")
+                .build());
+  }
+
   @PutMapping("/access-token")
   public ResponseEntity<ResponseFormat<String>> issueAccessTokenByRefreshToken(
-      HttpServletRequest request, HttpServletResponse response) {
+      HttpServletRequest request,
+      HttpServletResponse response,
+      @RequestBody RefreshTokenRequestDto refreshTokenRequestDto) {
+
+
 
     Cookie[] cookies = request.getCookies();
 
@@ -131,15 +149,23 @@ public class MemberRestController {
     if (cookies == null) {
       log.info("쿠키가 없습니다.");
     } else {
+      boolean isExist = false;
       for (Cookie cookie : cookies) {
         if ("refreshToken".equals(cookie.getName())) {
-          refreshToken = cookie.getValue();
-        } else {
-          log.info("refreshToken 이라는 이름의 쿠키가 없습니다");
+          String value = cookie.getValue();
+          log.info("[Find RefreshToken]: " + value);
+          refreshToken = value;
+          isExist = true;
+          break;
         }
       }
+      if(!isExist) {
+        log.info("해당 refresh token이 쿠키에 존재하지 않습니다.");
+      }
     }
+//    refreshToken = refreshTokenRequestDto.getCookie();
 
+    log.info("[refreshToken]: " + refreshToken);
     log.info("쿠키 확인 완료");
 
     log.info("MemberController's issueAccessTokenByRefreshToken executes..");
@@ -201,6 +227,19 @@ public class MemberRestController {
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("비밀번호 변경 시, 새 비밀번호로 변경 성공")
+                .build());
+  }
+
+  @DeleteMapping("/consumers")
+  public ResponseEntity<ResponseFormat<Void>> withdraw(@RequestHeader Long memberId) {
+
+    memberService.withdraw(memberId);
+    return ResponseEntity.ok()
+        .body(
+            ResponseFormat.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("회원 탈퇴 성공")
                 .build());
   }
 }

@@ -1,5 +1,7 @@
 package com.jeontongju.authentication.service;
 
+import com.jeontongju.authentication.domain.Member;
+import com.jeontongju.authentication.domain.SnsAccount;
 import com.jeontongju.authentication.dto.MailInfoDto;
 import com.jeontongju.authentication.dto.request.*;
 import com.jeontongju.authentication.dto.response.ImpAuthInfo;
@@ -9,9 +11,6 @@ import com.jeontongju.authentication.dto.response.oauth.google.GoogleOAuthInfo;
 import com.jeontongju.authentication.dto.response.oauth.kakao.KakaoOAuthInfo;
 import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateBySnsRequestDto;
 import com.jeontongju.authentication.dto.temp.MemberEmailForKeyDto;
-import com.jeontongju.authentication.dto.temp.SellerInfoForCreateRequestDto;
-import com.jeontongju.authentication.entity.Member;
-import com.jeontongju.authentication.entity.SnsAccount;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
 import com.jeontongju.authentication.enums.SnsTypeEnum;
 import com.jeontongju.authentication.exception.*;
@@ -34,7 +33,6 @@ import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.Optional;
 import javax.crypto.SecretKey;
 import javax.mail.MessagingException;
 import javax.persistence.EntityNotFoundException;
@@ -62,6 +60,7 @@ public class MemberService {
   private final MemberMapper memberMapper;
   private final RedisTemplate<String, String> redisTemplate;
   private final JwtTokenProvider jwtTokenProvider;
+  private final Auth19Manager auth19Manager;
 
   @Value("${jwt.secret}")
   private String secret;
@@ -94,13 +93,20 @@ public class MemberService {
     return MailAuthCodeResponseDto.builder().authCode(mailInfoDto.getValidCode()).build();
   }
 
+  /**
+   * 회원 가입 (소비자)
+   *
+   * @param signupRequestDto 회원가입 시 필요한 정보 (이메일, 비밀번호, imp_uid)
+   * @throws JSONException
+   * @throws IOException
+   */
   @Transactional
   public void signupForConsumer(ConsumerInfoForSignUpRequestDto signupRequestDto)
       throws JSONException, IOException {
 
-    ImpAuthInfo impAuthInfo = Auth19Manager.authenticate19(signupRequestDto.getImpUid());
+    ImpAuthInfo impAuthInfo = auth19Manager.authenticate19(signupRequestDto.getImpUid());
 
-    Member savedConsumer = null;
+    Member savedConsumer;
     if (signupRequestDto.getIsMerge()) { // 계정 통합 시
 
       savedConsumer =
@@ -133,7 +139,7 @@ public class MemberService {
       throws JSONException, IOException {
 
     // 성인 인증
-    ImpAuthInfo impAuthInfo = Auth19Manager.authenticate19(signUpRequestDto.getImpUid());
+    ImpAuthInfo impAuthInfo = auth19Manager.authenticate19(signUpRequestDto.getImpUid());
 
     Member savedSeller =
         memberRepository.save(
@@ -202,7 +208,9 @@ public class MemberService {
 
     log.info("MemberService's renewAccessTokenByRefreshToken executes..");
     try {
+      log.info("[refreshToken]: " + refreshToken);
       log.info("redisTemplate starts..");
+      log.info("[secret]: " + secret);
       ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();
 
       byte[] keyBytes = Decoders.BASE64.decode(secret);
@@ -210,20 +218,22 @@ public class MemberService {
 
       Claims claims = checkValid(refreshToken, key);
       String memberId = claims.get("memberId", String.class);
+      log.info("[memberId]: " + memberId);
       Member member =
           memberRepository
               .findByMemberId(Long.parseLong(memberId))
-              .orElseThrow(
-                  () ->
-                      new MalformedRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN));
+              .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
       String refreshKey = member.getMemberRoleEnum().name() + "_" + member.getUsername();
-      log.info("redisTemplate.opsForValue get..");
+      log.info("[refreshKey]: " + refreshKey);
+      log.info("[redisTemplate.opsForValue get..]");
       String refreshTokenInRedis = stringStringValueOperations.get(refreshKey);
-      log.info("redisTemplate Successful end!");
+      log.info("[redisTemplate Successful end]!");
 
       // refreshtoken이 탈취되었을 가능성이 있을지 확인
       if (!refreshToken.equals(refreshTokenInRedis)) {
         // 다르면 탈취된 것으로 판단
+        log.info("[refreshToken is different in redis]!!");
+        log.info("[delete refresh key & value in redis]..");
         redisTemplate.delete(refreshKey);
         throw new MalformedRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN);
       }
@@ -233,8 +243,9 @@ public class MemberService {
       String renewedRefreshToken = jwtTokenProvider.createRefreshToken(Long.parseLong(memberId));
       stringStringValueOperations.set(refreshKey, renewedRefreshToken);
 
+      log.info("access token & refresh token renewed.");
       return JwtTokenResponse.builder()
-          .accessToken(renewedAccessToken)
+          .accessToken("Bearer " + renewedAccessToken)
           .refreshToken(renewedRefreshToken)
           .build();
 
@@ -256,6 +267,7 @@ public class MemberService {
           SignatureException,
           MalformedJwtException {
 
+    log.info("[MemberService's checkValid executes]");
     return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwt).getBody();
   }
 
@@ -302,5 +314,35 @@ public class MemberService {
             .findByMemberId(memberId)
             .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
     return MemberEmailForKeyDto.builder().email(foundMember.getUsername()).build();
+  }
+
+  /**
+   * 회원 탈퇴 처리
+   *
+   * @param memberId 탈퇴 처리할 회원 식별자
+   */
+  @Transactional
+  public void withdraw(Long memberId) {
+
+    Member foundMember =
+        memberRepository
+            .findByMemberId(memberId)
+            .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+    foundMember.delete();
+  }
+
+  /**
+   * 최초 소셜 로그인 후, 성인인증 처리
+   *
+   * @param memberId 로그인 한 회원 식별자
+   */
+  public void authentication19AfterSnsSignIn(
+      Long memberId, ImpUidForAdultCertificationRequestDto adultCertificationRequestDto)
+      throws JSONException, IOException {
+
+    ImpAuthInfo impAuthInfo =
+        auth19Manager.authenticate19(adultCertificationRequestDto.getImpUid());
+    consumerClientService.updateConsumerByAuth19(
+        memberMapper.toImpAuthInfoDto(memberId, impAuthInfo));
   }
 }

@@ -1,6 +1,6 @@
 package com.jeontongju.authentication.security;
 
-import com.jeontongju.authentication.entity.Member;
+import com.jeontongju.authentication.domain.Member;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;

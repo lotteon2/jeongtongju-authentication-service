@@ -1,7 +1,7 @@
 package com.jeontongju.authentication.mapper;
 
-import com.jeontongju.authentication.entity.Member;
-import com.jeontongju.authentication.entity.SnsAccount;
+import com.jeontongju.authentication.domain.Member;
+import com.jeontongju.authentication.domain.SnsAccount;
 import org.springframework.stereotype.Component;
 
 @Component

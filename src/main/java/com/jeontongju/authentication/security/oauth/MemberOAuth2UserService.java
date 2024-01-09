@@ -4,9 +4,10 @@ import com.jeontongju.authentication.dto.response.oauth.OAuth2UserInfo;
 import com.jeontongju.authentication.dto.response.oauth.google.GoogleUserInfo;
 import com.jeontongju.authentication.dto.response.oauth.kakao.KakaoUserInfo;
 import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateBySnsRequestDto;
-import com.jeontongju.authentication.entity.Member;
+import com.jeontongju.authentication.domain.Member;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
 import com.jeontongju.authentication.enums.SnsTypeEnum;
+import com.jeontongju.authentication.exception.AlreadyWithdrawalMemberException;
 import com.jeontongju.authentication.exception.MemberNotFoundException;
 import com.jeontongju.authentication.mapper.MemberMapper;
 import com.jeontongju.authentication.mapper.SnsAccountMapper;
@@ -87,6 +88,10 @@ public class MemberOAuth2UserService extends DefaultOAuth2UserService {
               .findByUsernameAndMemberRoleEnum(
                   oAuth2UserInfo.getEmail(), MemberRoleEnum.ROLE_CONSUMER)
               .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+
+      if (member.getIsDeleted()) {
+        throw new OAuth2AuthenticationException(CustomErrMessage.DISABLED_MEMBER);
+      }
     }
 
     return new MemberDetails(member, oAuth2User.getAttributes());
