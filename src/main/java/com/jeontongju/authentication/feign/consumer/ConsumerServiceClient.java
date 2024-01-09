@@ -1,4 +1,4 @@
-package com.jeontongju.authentication.service.feign.consumer;
+package com.jeontongju.authentication.feign.consumer;
 
 import com.jeontongju.authentication.dto.temp.*;
 import io.github.bitbox.bitbox.dto.ConsumerInfoForCreateRequestDto;

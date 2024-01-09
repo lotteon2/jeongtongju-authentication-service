@@ -1,4 +1,4 @@
-package com.jeontongju.authentication.service.feign.seller;
+package com.jeontongju.authentication.feign.seller;
 
 import com.jeontongju.authentication.dto.temp.SellerInfoForCreateRequestDto;
 import lombok.RequiredArgsConstructor;
@@ -12,5 +12,9 @@ public class SellerClientService {
 
   public void createSellerForSignup(SellerInfoForCreateRequestDto createRequestDto) {
     sellerServiceClient.createSellerForSignup(createRequestDto);
+  }
+
+  public Long getCountOfApprovalWaitingSeller() {
+    return sellerServiceClient.getCountOfApprovalWaitingSeller().getData();
   }
 }

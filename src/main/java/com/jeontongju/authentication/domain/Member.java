@@ -2,6 +2,7 @@ package com.jeontongju.authentication.domain;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
+import com.jeontongju.authentication.domain.common.BaseEntity;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
 import java.util.List;
 import javax.persistence.*;
@@ -25,7 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @Getter
-public class Member {
+public class Member extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = IDENTITY)
