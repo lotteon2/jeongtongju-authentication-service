@@ -149,15 +149,21 @@ public class MemberRestController {
     if (cookies == null) {
       log.info("쿠키가 없습니다.");
     } else {
+      boolean isExist = false;
       for (Cookie cookie : cookies) {
         if ("refreshToken".equals(cookie.getName())) {
-          refreshToken = cookie.getValue();
-        } else {
-          log.info("refreshToken 이라는 이름의 쿠키가 없습니다");
+          String value = cookie.getValue();
+          log.info("[Find RefreshToken]: " + value);
+          refreshToken = value;
+          isExist = true;
+          break;
         }
       }
+      if(!isExist) {
+        log.info("해당 refresh token이 쿠키에 존재하지 않습니다.");
+      }
     }
-    refreshToken = refreshTokenRequestDto.getCookie();
+//    refreshToken = refreshTokenRequestDto.getCookie();
 
     log.info("[refreshToken]: " + refreshToken);
     log.info("쿠키 확인 완료");
