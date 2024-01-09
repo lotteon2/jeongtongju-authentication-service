@@ -3,6 +3,7 @@ package com.jeontongju.authentication.controller;
 import com.jeontongju.authentication.dto.request.*;
 import com.jeontongju.authentication.dto.response.JwtTokenResponse;
 import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
+import com.jeontongju.authentication.dto.response.MemberInfoForAdminManagingResponseDto;
 import com.jeontongju.authentication.dto.response.SiteSituationForAdminManagingResponseDto;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
 import com.jeontongju.authentication.service.MemberService;
@@ -93,32 +94,6 @@ public class MemberRestController {
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("셀러 회원가입 성공")
-                .build());
-  }
-
-  @GetMapping("/sign-in/oauth2/code/kakao")
-  public ResponseEntity<ResponseFormat<Void>> signInForConsumerBySns(@RequestParam String code) {
-
-    memberService.signInForConsumerByKakao(code);
-    return ResponseEntity.ok()
-        .body(
-            ResponseFormat.<Void>builder()
-                .code(HttpStatus.OK.value())
-                .message(HttpStatus.OK.name())
-                .detail("소비자 소셜 로그인 성공 - KAKAO")
-                .build());
-  }
-
-  @GetMapping("/sign-in/oauth2/code/google")
-  public ResponseEntity<ResponseFormat<Void>> signInForConsumerByGoogle(@RequestParam String code) {
-
-    memberService.signInForConsumerByGoogle(code);
-    return ResponseEntity.ok()
-        .body(
-            ResponseFormat.<Void>builder()
-                .code(HttpStatus.OK.value())
-                .message(HttpStatus.OK.name())
-                .detail("소비자 소셜 로그인 성공 - GOOGLE")
                 .build());
   }
 
@@ -255,6 +230,20 @@ public class MemberRestController {
                 .message(HttpStatus.OK.name())
                 .detail("관리자, 사이트 현황 조회 성공")
                 .data(memberService.getSiteSituation(memberRole))
+                .build());
+  }
+
+  @GetMapping("/admins/members/result")
+  public ResponseEntity<ResponseFormat<MemberInfoForAdminManagingResponseDto>> getMembersResult(
+      @RequestHeader MemberRoleEnum memberRole) {
+
+    return ResponseEntity.ok()
+        .body(
+            ResponseFormat.<MemberInfoForAdminManagingResponseDto>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("관리자, 모든 회원 현황 조회 성공")
+                .data(memberService.getMembersResult(memberRole))
                 .build());
   }
 }
