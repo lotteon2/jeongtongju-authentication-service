@@ -1,12 +1,10 @@
 package com.jeontongju.authentication.repository;
 
 import com.jeontongju.authentication.domain.Member;
-
-import java.time.LocalDate;
+import com.jeontongju.authentication.enums.MemberRoleEnum;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-
-import com.jeontongju.authentication.enums.MemberRoleEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MemberRepository extends JpaRepository<Member, String> {
@@ -17,6 +15,8 @@ public interface MemberRepository extends JpaRepository<Member, String> {
 
   Optional<Member> findByUsernameAndMemberRoleEnum(String email, MemberRoleEnum memberRole);
 
-  List<Member> findByMemberRoleEnumAndCreatedAtContaining(
-      MemberRoleEnum memberRole, LocalDate currentDate);
+  List<Member> findByMemberRoleEnumAndCreatedAtAfter(
+      MemberRoleEnum memberRole, LocalDateTime currentDate);
+
+  List<Member> findByIsDeletedAndCreatedAtAfter(boolean isDeleted, LocalDateTime currentDate);
 }

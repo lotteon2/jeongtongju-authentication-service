@@ -7,6 +7,7 @@ import com.jeontongju.authentication.dto.request.*;
 import com.jeontongju.authentication.dto.response.ImpAuthInfo;
 import com.jeontongju.authentication.dto.response.JwtTokenResponse;
 import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
+import com.jeontongju.authentication.dto.response.SiteSituationForAdminManagingResponseDto;
 import com.jeontongju.authentication.dto.response.oauth.google.GoogleOAuthInfo;
 import com.jeontongju.authentication.dto.response.oauth.kakao.KakaoOAuthInfo;
 import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateBySnsRequestDto;
@@ -35,6 +36,7 @@ import io.jsonwebtoken.security.SignatureException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import javax.crypto.SecretKey;
 import javax.mail.MessagingException;
@@ -355,25 +357,42 @@ public class MemberService {
         memberMapper.toImpAuthInfoDto(memberId, impAuthInfo));
   }
 
+  /**
+   * 관리자의 서비스 현황 조회(입점 대기, 신규 셀러 및 소비자, 탈토 회원, 경매 대기)
+   *
+   * @param memberRole 해당 작업을 호출할 회원의 역할(ROLE_ADMIN)
+   * @return {SiteSituationForAdminManagingResponseDto} 서비스의 현황 정보
+   */
   @Transactional
-  public void getSiteSituation(MemberRoleEnum memberRole) {
+  public SiteSituationForAdminManagingResponseDto getSiteSituation(MemberRoleEnum memberRole) {
 
     if (memberRole != MemberRoleEnum.ROLE_ADMIN) {
       throw new NotAdminAccessDeniedException(CustomErrMessage.N0T_ADMIN_ACCESS_DENIED);
     }
 
     Long countOfApprovalWaitingSeller = sellerClientService.getCountOfApprovalWaitingSeller();
-    Long countOfApprovalWaitingProduct = auctionClientService.getCountOfApprovalWaitingProduct();
+    Long countOfApprovalWaitingAuctionProduct =
+        auctionClientService.getCountOfApprovalWaitingProduct();
     LocalDate currentDate = LocalDate.now();
+    LocalDateTime currentDateStartOfDay = currentDate.atStartOfDay();
+
     // 신규 유저(오늘)
     List<Member> registerConsumerAtToday =
-        memberRepository.findByMemberRoleEnumAndCreatedAtContaining(
-            MemberRoleEnum.ROLE_CONSUMER, currentDate);
+        memberRepository.findByMemberRoleEnumAndCreatedAtAfter(
+            MemberRoleEnum.ROLE_CONSUMER, currentDateStartOfDay);
     // 신규 셀러(오늘, 미승인 포함)
     List<Member> registerSellerAtToday =
-        memberRepository.findByMemberRoleEnumAndCreatedAtContaining(
-            MemberRoleEnum.ROLE_SELLER, currentDate);
-    // TODO 탈퇴 유저 조회 로직 작성
+        memberRepository.findByMemberRoleEnumAndCreatedAtAfter(
+            MemberRoleEnum.ROLE_SELLER, currentDateStartOfDay);
+    // 탈퇴 회원(오늘)
+    List<Member> deletedMemberAtToday =
+        memberRepository.findByIsDeletedAndCreatedAtAfter(true, currentDateStartOfDay);
+    return memberMapper.toSiteSituationDto(
+        countOfApprovalWaitingSeller,
+        registerSellerAtToday.size(),
+        registerConsumerAtToday.size(),
+        deletedMemberAtToday.size(),
+        countOfApprovalWaitingAuctionProduct);
   }
 
   /**

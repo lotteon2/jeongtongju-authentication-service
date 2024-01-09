@@ -3,6 +3,7 @@ package com.jeontongju.authentication.controller;
 import com.jeontongju.authentication.dto.request.*;
 import com.jeontongju.authentication.dto.response.JwtTokenResponse;
 import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
+import com.jeontongju.authentication.dto.response.SiteSituationForAdminManagingResponseDto;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
 import com.jeontongju.authentication.service.MemberService;
 import java.io.IOException;
@@ -244,17 +245,16 @@ public class MemberRestController {
   }
 
   @GetMapping("/admins/site-situation")
-  public ResponseEntity<ResponseFormat<Void>> getSiteSituation(
+  public ResponseEntity<ResponseFormat<SiteSituationForAdminManagingResponseDto>> getSiteSituation(
       @RequestHeader MemberRoleEnum memberRole) {
 
-    // TODO 조회 로직 마무리
-    memberService.getSiteSituation(memberRole);
     return ResponseEntity.ok()
         .body(
-            ResponseFormat.<Void>builder()
+            ResponseFormat.<SiteSituationForAdminManagingResponseDto>builder()
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("관리자, 사이트 현황 조회 성공")
+                .data(memberService.getSiteSituation(memberRole))
                 .build());
   }
 }
