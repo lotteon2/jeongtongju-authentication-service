@@ -1,9 +1,11 @@
 package com.jeontongju.authentication.feign.consumer;
 
 import com.jeontongju.authentication.dto.temp.*;
+import io.github.bitbox.bitbox.dto.AgeDistributionForShowResponseDto;
 import io.github.bitbox.bitbox.dto.ConsumerInfoForCreateRequestDto;
 import io.github.bitbox.bitbox.dto.ImpAuthInfoForUpdateDto;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 
@@ -23,4 +25,7 @@ public interface ConsumerServiceClient {
 
   @PutMapping("/consumers/adult-certification")
   FeignFormat<Void> updateConsumerByAuth19(ImpAuthInfoForUpdateDto impAuthInfoDto);
+
+  @GetMapping("/consumers/age-distribution")
+  FeignFormat<AgeDistributionForShowResponseDto> getAgeDistributionForAllMembers();
 }
