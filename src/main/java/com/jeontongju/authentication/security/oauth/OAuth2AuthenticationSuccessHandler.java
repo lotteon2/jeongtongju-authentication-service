@@ -62,6 +62,6 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
     response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
 
-    response.sendRedirect("https://consumer.jeontongju.shop/init/callback?code=" + accessToken);
+    response.sendRedirect("https://consumer.jeontongju.shop-dev/init/callback?code=" + accessToken);
   }
 }
