@@ -30,7 +30,8 @@ public class CorsConfig {
             "https://consumer.jeontongju-dev.shop",
             "https://admin.jeontongju.shop",
             "https://seller.jeontongju.shop",
-            "https://consumer.jeontongju.shop"));
+            "https://consumer.jeontongju.shop",
+            "https://jeontongju.shop"));
     config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     config.addAllowedHeader("*");
     config.addExposedHeader("Authorization");
