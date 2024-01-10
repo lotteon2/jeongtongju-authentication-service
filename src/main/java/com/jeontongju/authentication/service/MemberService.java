@@ -1,29 +1,23 @@
 package com.jeontongju.authentication.service;
 
 import com.jeontongju.authentication.domain.Member;
-import com.jeontongju.authentication.domain.SnsAccount;
 import com.jeontongju.authentication.dto.MailInfoDto;
 import com.jeontongju.authentication.dto.request.*;
-import com.jeontongju.authentication.dto.response.ImpAuthInfo;
-import com.jeontongju.authentication.dto.response.JwtTokenResponse;
-import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
-import com.jeontongju.authentication.dto.response.oauth.google.GoogleOAuthInfo;
-import com.jeontongju.authentication.dto.response.oauth.kakao.KakaoOAuthInfo;
-import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateBySnsRequestDto;
+import com.jeontongju.authentication.dto.response.*;
 import com.jeontongju.authentication.dto.temp.MemberEmailForKeyDto;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
-import com.jeontongju.authentication.enums.SnsTypeEnum;
 import com.jeontongju.authentication.exception.*;
+import com.jeontongju.authentication.feign.auction.AuctionClientService;
+import com.jeontongju.authentication.feign.consumer.ConsumerClientService;
+import com.jeontongju.authentication.feign.seller.SellerClientService;
 import com.jeontongju.authentication.mapper.MemberMapper;
 import com.jeontongju.authentication.repository.MemberRepository;
 import com.jeontongju.authentication.repository.SnsAccountRepository;
 import com.jeontongju.authentication.security.jwt.JwtTokenProvider;
-import com.jeontongju.authentication.service.feign.consumer.ConsumerClientService;
-import com.jeontongju.authentication.service.feign.seller.SellerClientService;
 import com.jeontongju.authentication.utils.Auth19Manager;
 import com.jeontongju.authentication.utils.CustomErrMessage;
 import com.jeontongju.authentication.utils.MailManager;
-import com.jeontongju.authentication.utils.OAuth2Manager;
+import io.github.bitbox.bitbox.dto.AgeDistributionForShowResponseDto;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -33,6 +27,9 @@ import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import javax.crypto.SecretKey;
 import javax.mail.MessagingException;
 import javax.persistence.EntityNotFoundException;
@@ -57,6 +54,7 @@ public class MemberService {
   private final SnsAccountRepository snsAccountRepository;
   private final ConsumerClientService consumerClientService;
   private final SellerClientService sellerClientService;
+  private final AuctionClientService auctionClientService;
   private final MemberMapper memberMapper;
   private final RedisTemplate<String, String> redisTemplate;
   private final JwtTokenProvider jwtTokenProvider;
@@ -65,6 +63,14 @@ public class MemberService {
   @Value("${jwt.secret}")
   private String secret;
 
+  /**
+   * 비밀번호 찾기 시, 인증을 위한 이메일 전송
+   *
+   * @param authRequestDto 이메일 + 역할 정보(UNIQUE)
+   * @return {MailAuthCodeResponseDto} 이메일로 전송된 유효코드(8자)
+   * @throws MessagingException
+   * @throws UnsupportedEncodingException
+   */
   public MailAuthCodeResponseDto sendEmailAuthForFind(EmailInfoForAuthRequestDto authRequestDto)
       throws MessagingException, UnsupportedEncodingException {
 
@@ -76,10 +82,66 @@ public class MemberService {
     memberRepository
         .findByUsernameAndMemberRoleEnum(authRequestDto.getEmail(), memberRoleEnum)
         .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
-    MailInfoDto mailInfoDto = MailManager.sendAuthEmail(authRequestDto.getEmail());
+    MailInfoDto mailInfoDto =
+        MailManager.sendAuthEmail(authRequestDto.getEmail(), "비밀번호 찾기 인증 유효코드입니다.");
     return MailAuthCodeResponseDto.builder().authCode(mailInfoDto.getValidCode()).build();
   }
 
+  /**
+   * 비밀번호 찾기 시, 변경 처리
+   *
+   * @param changeRequestDto 비밀번호 변경을 위해 필요한 정보 (UNIQUE KEY + 새로운 비밀번호)
+   */
+  @Transactional
+  public void modifyPassword(PasswordForChangeRequestDto changeRequestDto) {
+
+    Member foundMember =
+        memberRepository
+            .findByUsernameAndMemberRoleEnum(
+                changeRequestDto.getEmail(), changeRequestDto.getMemberRole())
+            .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+    foundMember.assignPassword(changeRequestDto.getNewPassword());
+  }
+
+  /**
+   * 기존 비밀번호 확인
+   *
+   * @param memberId 로그인 한 회원 식별자
+   * @param checkRequestDto 사용자가 입력한 비밀번호
+   */
+  public void confirmOriginPassword(Long memberId, PasswordForCheckRequestDto checkRequestDto) {
+
+    Member foundMember = getMember(memberId);
+
+    String passwordInDB = foundMember.getPassword();
+    PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    if (!passwordEncoder.matches(checkRequestDto.getOriginalPassword(), passwordInDB)) {
+      throw new NotCorrespondPassword(CustomErrMessage.NOT_CORRESPOND_ORIGIN_PASSWORD);
+    }
+  }
+
+  /**
+   * 비밀번호 단순 변경 시, 변경 처리
+   *
+   * @param memberId 로그인 한 회원 식별자
+   * @param simpleChangeRequestDto 변경할 새로운 비밀번호
+   */
+  @Transactional
+  public void modifyPasswordForSimpleChange(
+      Long memberId, PasswordForSimpleChangeRequestDto simpleChangeRequestDto) {
+
+    Member foundMember = getMember(memberId);
+    foundMember.assignPassword(simpleChangeRequestDto.getNewPassword());
+  }
+
+  /**
+   * 회원 가입 시, 중복회원 확인 및 인증을 위한 유효코드 생성 및 메일 발송
+   *
+   * @param authRequestDto 이메일 + 역할 정보(UNIQUE)
+   * @return {MailAuthCodeResponseDto} 이메일로 전송된 유효코드(8자)
+   * @throws MessagingException
+   * @throws UnsupportedEncodingException
+   */
   public MailAuthCodeResponseDto sendEmailAuthForSignUp(EmailInfoForAuthRequestDto authRequestDto)
       throws MessagingException, UnsupportedEncodingException {
 
@@ -88,7 +150,8 @@ public class MemberService {
       throw new DuplicateEmailException(CustomErrMessage.EMAIL_ALREADY_IN_USE);
     }
 
-    MailInfoDto mailInfoDto = MailManager.sendAuthEmail(authRequestDto.getEmail());
+    MailInfoDto mailInfoDto =
+        MailManager.sendAuthEmail(authRequestDto.getEmail(), "회원가입 인증 유효코드입니다.");
 
     return MailAuthCodeResponseDto.builder().authCode(mailInfoDto.getValidCode()).build();
   }
@@ -96,7 +159,7 @@ public class MemberService {
   /**
    * 회원 가입 (소비자)
    *
-   * @param signupRequestDto 회원가입 시 필요한 정보 (이메일, 비밀번호, imp_uid)
+   * @param signupRequestDto 소비자 회원 가입 시 필요한 정보 (이메일, 비밀번호, imp_uid)
    * @throws JSONException
    * @throws IOException
    */
@@ -134,6 +197,13 @@ public class MemberService {
     }
   }
 
+  /**
+   * 회원 가입 (셀러)
+   *
+   * @param signUpRequestDto 셀러 회원 가입 시 필요한 정보
+   * @throws JSONException
+   * @throws IOException
+   */
   @Transactional
   public void signupForSeller(SellerInfoForSignUpRequestDto signUpRequestDto)
       throws JSONException, IOException {
@@ -158,51 +228,29 @@ public class MemberService {
     return foundMember != null && foundMember.getMemberRoleEnum().name().equals(memberRole);
   }
 
-  @Transactional
-  public void signInForConsumerByKakao(String code) throws DuplicateEmailException {
+  /**
+   * 소셜 로그인으로만 계정이 존재하는지에 대한 여부
+   *
+   * @param memberId 확인할 회원의 식별자
+   * @return {Boolean} 해당 회원 소셜 계정(만) 존재 여부
+   */
+  public Boolean isExistSocialAccount(Long memberId) {
 
-    KakaoOAuthInfo kakaoOAuthInfo = OAuth2Manager.authenticateByKakao(code);
-    String email = kakaoOAuthInfo.getKakao_account().getEmail();
-    if (isUniqueKeyDuplicated(email, MemberRoleEnum.ROLE_CONSUMER.name())) {
-      throw new DuplicateEmailException(CustomErrMessage.EMAIL_ALREADY_IN_USE);
+    Member foundMember = getMember(memberId);
+    // 소셜 계정이 존재하고 계정 통합이 되지 않았을 경우
+    if (!foundMember.getSnsAccountList().isEmpty() && foundMember.getPassword().isEmpty()) {
+      return true;
     }
 
-    Member savedMember =
-        memberRepository.save(memberMapper.toEntity(email, "", MemberRoleEnum.ROLE_CONSUMER));
-    snsAccountRepository.save(
-        SnsAccount.register(
-            SnsTypeEnum.KAKAO.name() + "_" + kakaoOAuthInfo.getId(),
-            SnsTypeEnum.KAKAO.name(),
-            savedMember));
-
-    consumerClientService.createConsumerForSignupBySns(
-        ConsumerInfoForCreateBySnsRequestDto.toDto(
-            savedMember.getMemberId(),
-            email,
-            kakaoOAuthInfo.getKakao_account().getProfile().getProfile_image_url()));
+    return false;
   }
 
-  @Transactional
-  public void signInForConsumerByGoogle(String code) {
-    GoogleOAuthInfo googleOAuthInfo = OAuth2Manager.authenticateByGoogle(code);
-    String email = googleOAuthInfo.getEmail();
-    if (isUniqueKeyDuplicated(email, MemberRoleEnum.ROLE_CONSUMER.name())) {
-      throw new DuplicateEmailException(CustomErrMessage.EMAIL_ALREADY_IN_USE);
-    }
-
-    Member savedMember =
-        memberRepository.save(memberMapper.toEntity(email, "", MemberRoleEnum.ROLE_CONSUMER));
-    snsAccountRepository.save(
-        SnsAccount.register(
-            SnsTypeEnum.GOOGLE.name() + "_" + googleOAuthInfo.getId(),
-            SnsTypeEnum.GOOGLE.name(),
-            savedMember));
-
-    consumerClientService.createConsumerForSignupBySns(
-        ConsumerInfoForCreateBySnsRequestDto.toDto(
-            savedMember.getMemberId(), email, googleOAuthInfo.getPicture()));
-  }
-
+  /**
+   * REFRESH TOKEN 검증을 통한 ACCESS TOKEN 재발급
+   *
+   * @param refreshToken 클라이언트에서 넘겨 받은 REFRESH TOKEN
+   * @return {JwtTokenResponse} 재발급된 토큰 정보
+   */
   @Transactional
   public JwtTokenResponse renewAccessTokenByRefreshToken(String refreshToken) {
 
@@ -261,6 +309,13 @@ public class MemberService {
     }
   }
 
+  /**
+   * REFRESH TOKEN 유효성 검사
+   *
+   * @param jwt REFRESH TOKEN
+   * @param key 시크릿 키
+   * @return {Claims} 토큰에 포함된 정보
+   */
   private Claims checkValid(String jwt, SecretKey key)
       throws IllegalArgumentException,
           ExpiredJwtException,
@@ -271,48 +326,9 @@ public class MemberService {
     return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwt).getBody();
   }
 
-  public void confirmOriginPassword(Long memberId, PasswordForCheckRequestDto checkRequestDto) {
-
-    Member foundMember =
-        memberRepository
-            .findByMemberId(memberId)
-            .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
-
-    String passwordInDB = foundMember.getPassword();
-    PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    if (!passwordEncoder.matches(checkRequestDto.getOriginalPassword(), passwordInDB)) {
-      throw new NotCorrespondPassword(CustomErrMessage.NOT_CORRESPOND_ORIGIN_PASSWORD);
-    }
-  }
-
-  @Transactional
-  public void modifyPassword(PasswordForChangeRequestDto changeRequestDto) {
-
-    Member foundMember =
-        memberRepository
-            .findByUsernameAndMemberRoleEnum(
-                changeRequestDto.getEmail(), changeRequestDto.getMemberRole())
-            .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
-    foundMember.assignPassword(changeRequestDto.getNewPassword());
-  }
-
-  @Transactional
-  public void modifyPasswordForSimpleChange(
-      Long memberId, PasswordForSimpleChangeRequestDto simpleChangeRequestDto) {
-
-    Member foundMember =
-        memberRepository
-            .findByMemberId(memberId)
-            .orElseThrow(() -> new ConsumerNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
-    foundMember.assignPassword(simpleChangeRequestDto.getNewPassword());
-  }
-
   public MemberEmailForKeyDto getMemberEmailForKey(Long memberId) {
 
-    Member foundMember =
-        memberRepository
-            .findByMemberId(memberId)
-            .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+    Member foundMember = getMember(memberId);
     return MemberEmailForKeyDto.builder().email(foundMember.getUsername()).build();
   }
 
@@ -324,10 +340,7 @@ public class MemberService {
   @Transactional
   public void withdraw(Long memberId) {
 
-    Member foundMember =
-        memberRepository
-            .findByMemberId(memberId)
-            .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+    Member foundMember = getMember(memberId);
     foundMember.delete();
   }
 
@@ -344,5 +357,74 @@ public class MemberService {
         auth19Manager.authenticate19(adultCertificationRequestDto.getImpUid());
     consumerClientService.updateConsumerByAuth19(
         memberMapper.toImpAuthInfoDto(memberId, impAuthInfo));
+  }
+
+  /**
+   * 관리자의 서비스 현황 조회(입점 대기, 신규 셀러 및 소비자, 탈퇴 회원, 경매 대기)
+   *
+   * @param memberRole 해당 작업을 호출할 회원의 역할(ROLE_ADMIN)
+   * @return {SiteSituationForAdminManagingResponseDto} 서비스의 현황 정보
+   */
+  @Transactional
+  public SiteSituationForAdminManagingResponseDto getSiteSituation(MemberRoleEnum memberRole) {
+
+    if (memberRole != MemberRoleEnum.ROLE_ADMIN) {
+      throw new NotAdminAccessDeniedException(CustomErrMessage.N0T_ADMIN_ACCESS_DENIED);
+    }
+
+    Long countOfApprovalWaitingSeller = sellerClientService.getCountOfApprovalWaitingSeller();
+    Long countOfApprovalWaitingAuctionProduct =
+        auctionClientService.getCountOfApprovalWaitingProduct();
+    LocalDate currentDate = LocalDate.now();
+    LocalDateTime currentDateStartOfDay = currentDate.atStartOfDay();
+
+    // 신규 유저(오늘)
+    List<Member> registerConsumerAtToday =
+        memberRepository.findByMemberRoleEnumAndCreatedAtAfter(
+            MemberRoleEnum.ROLE_CONSUMER, currentDateStartOfDay);
+    // 신규 셀러(오늘, 미승인 포함)
+    List<Member> registerSellerAtToday =
+        memberRepository.findByMemberRoleEnumAndCreatedAtAfter(
+            MemberRoleEnum.ROLE_SELLER, currentDateStartOfDay);
+    // 탈퇴 회원(오늘)
+    List<Member> deletedMemberAtToday =
+        memberRepository.findByIsDeletedAndCreatedAtAfter(true, currentDateStartOfDay);
+    return memberMapper.toSiteSituationDto(
+        countOfApprovalWaitingSeller,
+        registerSellerAtToday.size(),
+        registerConsumerAtToday.size(),
+        deletedMemberAtToday.size(),
+        countOfApprovalWaitingAuctionProduct);
+  }
+
+  /**
+   * 모든 회원 현황 조회 (관리자)
+   *
+   * @param memberRole 해당 작업을 호출할 회원의 역할(ROLE_ADMIN)
+   * @return {MemberInfoForAdminManagingResponseDto} 모든 회원 현황 정보
+   */
+  public MemberInfoForAdminManagingResponseDto getMembersResult(MemberRoleEnum memberRole) {
+
+    if (memberRole != MemberRoleEnum.ROLE_ADMIN) {
+      throw new NotAdminAccessDeniedException(CustomErrMessage.N0T_ADMIN_ACCESS_DENIED);
+    }
+
+    AgeDistributionForShowResponseDto ageDistributionForAllMembers =
+        consumerClientService.getAgeDistributionForAllMembers();
+
+    // TODO
+    return null;
+  }
+
+  /**
+   * memberId로 해당 Member객체 찾기(공통화)
+   *
+   * @param memberId 회원 식별자
+   * @return {Member} 찾은 회원 객체
+   */
+  private Member getMember(Long memberId) {
+    return memberRepository
+        .findByMemberId(memberId)
+        .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
   }
 }

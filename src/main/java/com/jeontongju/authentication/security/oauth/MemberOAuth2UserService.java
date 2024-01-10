@@ -7,14 +7,13 @@ import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateBySnsRequestD
 import com.jeontongju.authentication.domain.Member;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
 import com.jeontongju.authentication.enums.SnsTypeEnum;
-import com.jeontongju.authentication.exception.AlreadyWithdrawalMemberException;
 import com.jeontongju.authentication.exception.MemberNotFoundException;
 import com.jeontongju.authentication.mapper.MemberMapper;
 import com.jeontongju.authentication.mapper.SnsAccountMapper;
 import com.jeontongju.authentication.repository.MemberRepository;
 import com.jeontongju.authentication.repository.SnsAccountRepository;
 import com.jeontongju.authentication.security.MemberDetails;
-import com.jeontongju.authentication.service.feign.consumer.ConsumerClientService;
+import com.jeontongju.authentication.feign.consumer.ConsumerClientService;
 import com.jeontongju.authentication.utils.CustomErrMessage;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;

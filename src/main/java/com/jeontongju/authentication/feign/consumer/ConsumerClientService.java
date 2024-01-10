@@ -1,7 +1,8 @@
-package com.jeontongju.authentication.service.feign.consumer;
+package com.jeontongju.authentication.feign.consumer;
 
 import com.jeontongju.authentication.dto.temp.ConsumerInfoForAccountConsolidationDto;
 import com.jeontongju.authentication.dto.temp.ConsumerInfoForCreateBySnsRequestDto;
+import io.github.bitbox.bitbox.dto.AgeDistributionForShowResponseDto;
 import io.github.bitbox.bitbox.dto.ConsumerInfoForCreateRequestDto;
 import io.github.bitbox.bitbox.dto.ImpAuthInfoForUpdateDto;
 import lombok.RequiredArgsConstructor;
@@ -37,5 +38,10 @@ public class ConsumerClientService {
   public void updateConsumerByAuth19(ImpAuthInfoForUpdateDto impAuthInfoDto) {
 
     consumerServiceClient.updateConsumerByAuth19(impAuthInfoDto);
+  }
+
+  public AgeDistributionForShowResponseDto getAgeDistributionForAllMembers() {
+
+    return consumerServiceClient.getAgeDistributionForAllMembers().getData();
   }
 }

@@ -1,19 +1,19 @@
 package com.jeontongju.authentication.mapper;
 
+import com.jeontongju.authentication.domain.Member;
 import com.jeontongju.authentication.dto.request.SellerInfoForSignUpRequestDto;
 import com.jeontongju.authentication.dto.response.ImpAuthInfo;
+import com.jeontongju.authentication.dto.response.SiteSituationForAdminManagingResponseDto;
 import com.jeontongju.authentication.dto.temp.ConsumerInfoForAccountConsolidationDto;
 import com.jeontongju.authentication.dto.temp.SellerInfoForCreateRequestDto;
-import com.jeontongju.authentication.domain.Member;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
 import io.github.bitbox.bitbox.dto.ConsumerInfoForCreateRequestDto;
 import io.github.bitbox.bitbox.dto.ImpAuthInfoForUpdateDto;
+import java.time.LocalDate;
+import java.time.Period;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDate;
-import java.time.Period;
 
 @Component
 public class MemberMapper {
@@ -75,6 +75,22 @@ public class MemberMapper {
         .consumerId(consumerId)
         .name(impAuthInfo.getName())
         .phoneNumber(impAuthInfo.getPhone())
+        .build();
+  }
+
+  public SiteSituationForAdminManagingResponseDto toSiteSituationDto(
+      Long waitingApprovalSellerCnts,
+      int newSellerCnts,
+      int newConsumerCnts,
+      int deletedMemberCnts,
+      Long waitingApprovalAuctionCnts) {
+
+    return SiteSituationForAdminManagingResponseDto.builder()
+        .waitingApprovalSellerCnts(waitingApprovalSellerCnts)
+        .newSellerCnts(newSellerCnts)
+        .newConsumerCnts(newConsumerCnts)
+        .deletedMemberCnts(deletedMemberCnts)
+        .waitingApprovalAuctionCnts(waitingApprovalAuctionCnts)
         .build();
   }
 }

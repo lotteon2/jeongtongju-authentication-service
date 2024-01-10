@@ -2,7 +2,7 @@ package com.jeontongju.authentication.utils;
 
 import com.jeontongju.authentication.dto.MailInfoDto;
 import java.io.UnsupportedEncodingException;
-import java.util.Random;
+import java.security.SecureRandom;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMessage.RecipientType;
@@ -24,31 +24,23 @@ public class MailManager {
 
   // 이메일 유효코드 생성
   private static String createValidCode() {
-    Random random = new Random();
-    StringBuilder key = new StringBuilder();
 
-    String authNum;
-    for (int i = 0; i < VALID_CODE_LENGTH; i++) {
-      int idx = random.nextInt(3);
+      final int CODE_LEN = 8;
+      SecureRandom random = new SecureRandom();
+      StringBuilder builder = new StringBuilder(CODE_LEN);
 
-      switch (idx) {
-        case 0:
-          key.append((char) (random.nextInt(26) + 97));
-          break;
-        case 1:
-          key.append((char) (random.nextInt(26) + 65));
-          break;
-        case 2:
-          key.append(random.nextInt(9));
-          break;
+      final String CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      for (int i = 0; i < CODE_LEN; i++) {
+        int randomIdx = random.nextInt(CHARACTERS.length());
+        char randomChar = CHARACTERS.charAt(randomIdx);
+        builder.append(randomChar);
       }
-    }
-    authNum = key.toString();
-    return authNum;
+
+      return builder.toString();
   }
 
   // 이메일 폼 생성
-  private static MailInfoDto createEmailForm(String to)
+  private static MailInfoDto createEmailForm(String to, String text)
       throws MessagingException, UnsupportedEncodingException {
 
     String title = "전통주점 회원가입 유효코드 발송";
@@ -57,14 +49,14 @@ public class MailManager {
     message.addRecipients(RecipientType.TO, to);
     message.setSubject(title);
     message.setFrom(from);
-    message.setText("회원가입 인증 유효코드입니다.<br>" + authNum, "utf-8", "html");
+    message.setText(text + "<br>" + authNum, "utf-8", "html");
     return MailInfoDto.builder().mimeMessage(message).validCode(authNum).build();
   }
 
   // 이메일 보내기
-  public static MailInfoDto sendAuthEmail(String email)
+  public static MailInfoDto sendAuthEmail(String email, String text)
       throws MessagingException, UnsupportedEncodingException {
-    MailInfoDto mailInfo = createEmailForm(email);
+    MailInfoDto mailInfo = createEmailForm(email, text);
     MimeMessage emailForm = mailInfo.getMimeMessage();
     mailSender.send(emailForm);
     return mailInfo;

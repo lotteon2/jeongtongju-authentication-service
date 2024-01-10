@@ -3,7 +3,9 @@ package com.jeontongju.authentication.controller;
 import com.jeontongju.authentication.dto.request.*;
 import com.jeontongju.authentication.dto.response.JwtTokenResponse;
 import com.jeontongju.authentication.dto.response.MailAuthCodeResponseDto;
-import com.jeontongju.authentication.dto.temp.ResponseFormat;
+import com.jeontongju.authentication.dto.response.MemberInfoForAdminManagingResponseDto;
+import com.jeontongju.authentication.dto.response.SiteSituationForAdminManagingResponseDto;
+import com.jeontongju.authentication.enums.MemberRoleEnum;
 import com.jeontongju.authentication.service.MemberService;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -12,6 +14,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+
+import io.github.bitbox.bitbox.dto.ResponseFormat;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
@@ -93,32 +97,6 @@ public class MemberRestController {
                 .build());
   }
 
-  @GetMapping("/sign-in/oauth2/code/kakao")
-  public ResponseEntity<ResponseFormat<Void>> signInForConsumerBySns(@RequestParam String code) {
-
-    memberService.signInForConsumerByKakao(code);
-    return ResponseEntity.ok()
-        .body(
-            ResponseFormat.<Void>builder()
-                .code(HttpStatus.OK.value())
-                .message(HttpStatus.OK.name())
-                .detail("소비자 소셜 로그인 성공 - KAKAO")
-                .build());
-  }
-
-  @GetMapping("/sign-in/oauth2/code/google")
-  public ResponseEntity<ResponseFormat<Void>> signInForConsumerByGoogle(@RequestParam String code) {
-
-    memberService.signInForConsumerByGoogle(code);
-    return ResponseEntity.ok()
-        .body(
-            ResponseFormat.<Void>builder()
-                .code(HttpStatus.OK.value())
-                .message(HttpStatus.OK.name())
-                .detail("소비자 소셜 로그인 성공 - GOOGLE")
-                .build());
-  }
-
   @PatchMapping("/consumers/adult-certification")
   public ResponseEntity<ResponseFormat<Void>> authentication19AfterSnsSignIn(
       @RequestHeader Long memberId,
@@ -141,8 +119,6 @@ public class MemberRestController {
       HttpServletResponse response,
       @RequestBody RefreshTokenRequestDto refreshTokenRequestDto) {
 
-
-
     Cookie[] cookies = request.getCookies();
 
     String refreshToken = null;
@@ -159,11 +135,11 @@ public class MemberRestController {
           break;
         }
       }
-      if(!isExist) {
+      if (!isExist) {
         log.info("해당 refresh token이 쿠키에 존재하지 않습니다.");
       }
     }
-//    refreshToken = refreshTokenRequestDto.getCookie();
+    //    refreshToken = refreshTokenRequestDto.getCookie();
 
     log.info("[refreshToken]: " + refreshToken);
     log.info("쿠키 확인 완료");
@@ -240,6 +216,34 @@ public class MemberRestController {
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("회원 탈퇴 성공")
+                .build());
+  }
+
+  @GetMapping("/admins/site-situation")
+  public ResponseEntity<ResponseFormat<SiteSituationForAdminManagingResponseDto>> getSiteSituation(
+      @RequestHeader MemberRoleEnum memberRole) {
+
+    return ResponseEntity.ok()
+        .body(
+            ResponseFormat.<SiteSituationForAdminManagingResponseDto>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("관리자, 사이트 현황 조회 성공")
+                .data(memberService.getSiteSituation(memberRole))
+                .build());
+  }
+
+  @GetMapping("/admins/members/result")
+  public ResponseEntity<ResponseFormat<MemberInfoForAdminManagingResponseDto>> getMembersResult(
+      @RequestHeader MemberRoleEnum memberRole) {
+
+    return ResponseEntity.ok()
+        .body(
+            ResponseFormat.<MemberInfoForAdminManagingResponseDto>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("관리자, 모든 회원 현황 조회 성공")
+                .data(memberService.getMembersResult(memberRole))
                 .build());
   }
 }
