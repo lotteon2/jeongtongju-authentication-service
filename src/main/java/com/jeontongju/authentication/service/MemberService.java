@@ -145,15 +145,27 @@ public class MemberService {
   public MailAuthCodeResponseDto sendEmailAuthForSignUp(EmailInfoForAuthRequestDto authRequestDto)
       throws MessagingException, UnsupportedEncodingException {
 
+    Member foundMember =
+        getMemberByUniqueKey(authRequestDto.getEmail(), authRequestDto.getMemberRole());
+    boolean isSocial = false;
+    boolean isUniqueKeyDuplicated = foundMember != null;
+
     // 이메일 + 역할 중복 체크
-    if (isUniqueKeyDuplicated(authRequestDto.getEmail(), authRequestDto.getMemberRole())) {
-      throw new DuplicateEmailException(CustomErrMessage.EMAIL_ALREADY_IN_USE);
+    if (isUniqueKeyDuplicated) {
+
+      if (foundMember.getSnsAccountList().isEmpty()) {
+        throw new DuplicateEmailException(CustomErrMessage.EMAIL_ALREADY_IN_USE);
+      }
+      isSocial = true;
     }
 
     MailInfoDto mailInfoDto =
         MailManager.sendAuthEmail(authRequestDto.getEmail(), "회원가입 인증 유효코드입니다.");
 
-    return MailAuthCodeResponseDto.builder().authCode(mailInfoDto.getValidCode()).build();
+    return MailAuthCodeResponseDto.builder()
+        .authCode(mailInfoDto.getValidCode())
+        .isSocial(isSocial)
+        .build();
   }
 
   /**
@@ -220,19 +232,6 @@ public class MemberService {
 
     sellerClientService.createSellerForSignup(
         memberMapper.toSellerCreateDto(savedSeller.getMemberId(), signUpRequestDto, impAuthInfo));
-  }
-
-  private Boolean isUniqueKeyDuplicated(String email, String memberRole) {
-
-    MemberRoleEnum memberRoleEnum =
-        memberRole.equals("ROLE_CONSUMER")
-            ? MemberRoleEnum.ROLE_CONSUMER
-            : MemberRoleEnum.ROLE_SELLER;
-    Member foundMember =
-        memberRepository
-            .findByUsernameAndMemberRoleEnum(email, memberRoleEnum)
-            .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
-    return foundMember != null;
   }
 
   /**
@@ -421,6 +420,18 @@ public class MemberService {
 
     // TODO
     return null;
+  }
+
+  public Member getMemberByUniqueKey(String email, String memberRole) {
+    MemberRoleEnum memberRoleEnum =
+        memberRole.equals("ROLE_CONSUMER")
+            ? MemberRoleEnum.ROLE_CONSUMER
+            : MemberRoleEnum.ROLE_SELLER;
+    Member foundMember =
+        memberRepository
+            .findByUsernameAndMemberRoleEnum(email, memberRoleEnum)
+            .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+    return foundMember;
   }
 
   /**
