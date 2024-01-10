@@ -430,7 +430,7 @@ public class MemberService {
     Member foundMember =
         memberRepository
             .findByUsernameAndMemberRoleEnum(email, memberRoleEnum)
-            .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+            .orElse(null);
     return foundMember;
   }
 
