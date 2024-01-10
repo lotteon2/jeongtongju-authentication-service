@@ -224,8 +224,15 @@ public class MemberService {
 
   private Boolean isUniqueKeyDuplicated(String email, String memberRole) {
 
-    Member foundMember = memberRepository.findByUsername(email).orElse(null);
-    return foundMember != null && foundMember.getMemberRoleEnum().name().equals(memberRole);
+    MemberRoleEnum memberRoleEnum =
+        memberRole.equals("ROLE_CONSUMER")
+            ? MemberRoleEnum.ROLE_CONSUMER
+            : MemberRoleEnum.ROLE_SELLER;
+    Member foundMember =
+        memberRepository
+            .findByUsernameAndMemberRoleEnum(email, memberRoleEnum)
+            .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
+    return foundMember != null;
   }
 
   /**
