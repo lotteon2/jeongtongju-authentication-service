@@ -1,9 +1,9 @@
 package com.jeontongju.authentication.security.jwt.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jeontongju.authentication.dto.temp.ResponseFormat;
 import com.jeontongju.authentication.dto.request.MemberInfoForSignInRequestDto;
 import com.jeontongju.authentication.dto.response.JwtAccessTokenResponse;
+import com.jeontongju.authentication.dto.temp.ResponseFormat;
 import com.jeontongju.authentication.exception.DuplicateAuthenticationException;
 import com.jeontongju.authentication.security.MemberDetails;
 import com.jeontongju.authentication.security.jwt.JwtTokenProvider;
@@ -11,7 +11,6 @@ import com.jeontongju.authentication.security.jwt.token.JwtAuthenticationToken;
 import java.io.IOException;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +27,6 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.web.util.CookieGenerator;
 
 @Slf4j
 public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
@@ -107,30 +105,6 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
     MemberDetails memberDetails = (MemberDetails) authResult.getPrincipal();
     String jwtRefreshToken =
         jwtTokenProvider.createRefreshToken(memberDetails.getMember().getMemberId());
-
-    //    JwtAuthenticationToken jwtAuthenticationToken = (JwtAuthenticationToken) authResult;
-    //    String platform = jwtAuthenticationToken.getPlatform();
-    //
-    //    //TODO
-    //    if (platform != null && platform.equals("Windows")) {
-    //
-    //    } else if (platform != null && (platform.equals("iOS") || platform.equals("Android"))) {
-    //
-    //    }
-
-    //    CookieGenerator cg = new CookieGenerator();
-    //    cg.setCookieName("refreshToken");
-    //    cg.setCookieMaxAge(21600000);
-    //    cg.setCookiePath("/");
-    //    cg.setCookieSecure(true);
-    //
-    //    cg.addCookie(response, jwtRefreshToken);
-    //    Cookie cookie = new Cookie("refreshToken", jwtRefreshToken);
-    //    cookie.setMaxAge(21600000);
-    //    cookie.setSecure(true);
-    //    cookie.setHttpOnly(true);
-    //    cookie.setPath("/");
-    //    cookie.setDomain("consumer.jeontongju-dev.shop");
 
     ResponseCookie cookie =
         ResponseCookie.from("refreshToken", jwtRefreshToken)
