@@ -243,11 +243,14 @@ public class MemberService {
   public Boolean isExistSocialAccount(Long memberId) {
 
     Member foundMember = getMember(memberId);
-    // 소셜 계정이 존재하고 계정 통합이 되지 않았을 경우
-    if (!foundMember.getSnsAccountList().isEmpty() && foundMember.getPassword().isEmpty()) {
-      return true;
-    }
 
+    // 소셜 계정이 존재하고 계정 통합이 되지 않았을 경우
+    if (!foundMember.getSnsAccountList().isEmpty()) {
+      PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+      if (passwordEncoder.matches("", foundMember.getPassword())) {
+        return true;
+      }
+    }
     return false;
   }
 
@@ -276,7 +279,6 @@ public class MemberService {
               .findByMemberId(Long.parseLong(memberId))
               .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
       String refreshKey = member.getMemberRoleEnum().name() + "_" + member.getUsername();
-      log.info("[refreshKey]: " + refreshKey);
       log.info("[redisTemplate.opsForValue get..]");
       String refreshTokenInRedis = stringStringValueOperations.get(refreshKey);
       log.info("[redisTemplate Successful end]!");
@@ -421,15 +423,13 @@ public class MemberService {
   }
 
   public Member getMemberByUniqueKey(String email, String memberRole) {
+
     MemberRoleEnum memberRoleEnum =
         memberRole.equals("ROLE_CONSUMER")
             ? MemberRoleEnum.ROLE_CONSUMER
             : MemberRoleEnum.ROLE_SELLER;
-    Member foundMember =
-        memberRepository
-            .findByUsernameAndMemberRoleEnum(email, memberRoleEnum)
-            .orElse(null);
-    return foundMember;
+
+    return memberRepository.findByUsernameAndMemberRoleEnum(email, memberRoleEnum).orElse(null);
   }
 
   /**
