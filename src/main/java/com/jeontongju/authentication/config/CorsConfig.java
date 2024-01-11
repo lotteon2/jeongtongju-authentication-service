@@ -25,6 +25,7 @@ public class CorsConfig {
             "https://test-jeontongju-jumo.netlify.app/",
             "https://jeontongju-front-admin.vercel.app/",
             "https://jeontongju-front-consumer.vercel.app/",
+            "https://jeontongju-front-consumer-d53q9lxq5-mjun111s-projects.vercel.app",
             "https://admin.jeontongju-dev.shop",
             "https://seller.jeontongju-dev.shop",
             "https://consumer.jeontongju-dev.shop",
