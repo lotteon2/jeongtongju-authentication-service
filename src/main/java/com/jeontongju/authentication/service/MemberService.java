@@ -260,11 +260,9 @@ public class MemberService {
   @Transactional
   public JwtTokenResponse renewAccessTokenByRefreshToken(String refreshToken) {
 
-    log.info("MemberService's renewAccessTokenByRefreshToken executes..");
+    log.info("[MemberService's renewAccessTokenByRefreshToken executes]..");
     try {
-      log.info("[refreshToken]: " + refreshToken);
-      log.info("redisTemplate starts..");
-      log.info("[secret]: " + secret);
+      log.info("[redisTemplate starts]..");
       ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();
 
       byte[] keyBytes = Decoders.BASE64.decode(secret);
