@@ -420,39 +420,60 @@ public class MemberService {
     AgeDistributionForShowResponseDto ageDistributionForAllMembers =
         consumerClientService.getAgeDistributionForAllMembers();
 
-    List<Object[]> memberCountsProgress =
-        getMemberCountsByCreatedAtAndMemberRoleEnumFromAWeekAgo(MemberRoleEnum.ROLE_CONSUMER);
+    LocalDate today = LocalDate.now();
+    LocalDate aWeekAgo = today.minusDays(6L);
 
-    Map<Date, Long> consumers = new LinkedHashMap<>();
+    List<Object[]> memberCountsProgress =
+        getMemberCountsByCreatedAtAndMemberRoleEnumFromAWeekAgo(
+            aWeekAgo, MemberRoleEnum.ROLE_CONSUMER);
+
+    Map<LocalDate, Long> consumers = new LinkedHashMap<>();
+    Map<LocalDate, Long> sellers = new LinkedHashMap<>();
+
+    long daysDifference = ChronoUnit.DAYS.between(aWeekAgo, today);
+
+    for (int i = 0; i <= daysDifference; i++) {
+
+      LocalDate curDate = aWeekAgo.plusDays(i);
+      log.info("[curDate]: " + curDate);
+
+      consumers.put(curDate, 0L);
+      sellers.put(curDate, 0L);
+    }
+
     for (Object[] memberCounts : memberCountsProgress) {
       Date date = (Date) memberCounts[0];
       Long memberCount = (Long) memberCounts[1];
       log.info("[date]: " + date);
       log.info("[memberCount]: " + memberCount);
-      consumers.put(date, memberCount);
+      consumers.put(date.toLocalDate(), memberCount);
     }
 
     List<Object[]> sellerCountsProgress =
-        getMemberCountsByCreatedAtAndMemberRoleEnumFromAWeekAgo(MemberRoleEnum.ROLE_SELLER);
+        getMemberCountsByCreatedAtAndMemberRoleEnumFromAWeekAgo(
+            aWeekAgo, MemberRoleEnum.ROLE_SELLER);
 
-    Map<Date, Long> sellers = new HashMap<>();
     for (Object[] sellerCounts : sellerCountsProgress) {
       Date date = (Date) sellerCounts[0];
       Long sellerCount = (Long) sellerCounts[1];
-      log.info("[date]: " + date);
-      log.info("[sellerCount]: " + sellerCount);
-      sellers.put(date, sellerCount);
+
+      sellers.put(date.toLocalDate(), sellerCount);
     }
     return memberMapper.toMemberInfoForAdminDto(ageDistributionForAllMembers, consumers, sellers);
   }
 
+  /**
+   * 일주일 전부터 현재까지 요일별 신규 회원 수 가져오기 (소비자 or 셀러)
+   *
+   * @param aWeekAgo 일주일 전 날짜 정보
+   * @param memberRoleEnum 찾을 신규 회원 역할
+   * @return {List<Object[]>} 요일별 신규 회원 수, size: 7
+   */
   private List<Object[]> getMemberCountsByCreatedAtAndMemberRoleEnumFromAWeekAgo(
-      MemberRoleEnum memberRoleEnum) {
+      LocalDate aWeekAgo, MemberRoleEnum memberRoleEnum) {
 
-    LocalDateTime now = LocalDateTime.now();
-    LocalDateTime aWeekAgo = now.minus(1, ChronoUnit.WEEKS);
     return memberRepository.getMemberCountsByCreatedAtAndMemberRoleEnumFromAWeekAgo(
-        aWeekAgo, memberRoleEnum);
+        aWeekAgo.atStartOfDay(), memberRoleEnum);
   }
 
   public Member getMemberByUniqueKey(String email, String memberRole) {

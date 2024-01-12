@@ -11,12 +11,9 @@ import com.jeontongju.authentication.enums.MemberRoleEnum;
 import io.github.bitbox.bitbox.dto.AgeDistributionForShowResponseDto;
 import io.github.bitbox.bitbox.dto.ConsumerInfoForCreateRequestDto;
 import io.github.bitbox.bitbox.dto.ImpAuthInfoForUpdateDto;
-
-import java.sql.Date;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Map;
-
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -102,8 +99,8 @@ public class MemberMapper {
 
   public MemberInfoForAdminManagingResponseDto toMemberInfoForAdminDto(
       AgeDistributionForShowResponseDto ageDistributionForShowResponseDto,
-      Map<Date, Long> consumers,
-      Map<Date, Long> sellers) {
+      Map<LocalDate, Long> consumers,
+      Map<LocalDate, Long> sellers) {
 
     return MemberInfoForAdminManagingResponseDto.builder()
         .teenage(ageDistributionForShowResponseDto.getTeenage())
