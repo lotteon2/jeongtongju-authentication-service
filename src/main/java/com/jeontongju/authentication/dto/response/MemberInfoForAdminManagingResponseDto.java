@@ -1,6 +1,6 @@
 package com.jeontongju.authentication.dto.response;
 
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,6 +17,6 @@ public class MemberInfoForAdminManagingResponseDto {
   private Double twenty;
   private Double thirty;
   private Double fortyOver;
-  private Map<Date, Long> consumers;
-  private Map<Date, Long> sellers;
+  private Map<LocalDate, Long> consumers;
+  private Map<LocalDate, Long> sellers;
 }
