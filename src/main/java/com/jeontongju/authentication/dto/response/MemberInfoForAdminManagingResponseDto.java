@@ -1,11 +1,11 @@
 package com.jeontongju.authentication.dto.response;
 
+import java.sql.Date;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -13,10 +13,10 @@ import java.util.List;
 @Getter
 public class MemberInfoForAdminManagingResponseDto {
 
-  private Integer teenage;
-  private Integer twenty;
-  private Integer thirty;
-  private Integer fortyOver;
-  private List<Long> consumers;
-  private List<Long> sellers;
+  private Double teenage;
+  private Double twenty;
+  private Double thirty;
+  private Double fortyOver;
+  private Map<Date, Long> consumers;
+  private Map<Date, Long> sellers;
 }
