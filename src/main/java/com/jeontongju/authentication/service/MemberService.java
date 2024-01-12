@@ -27,9 +27,11 @@ import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import javax.crypto.SecretKey;
 import javax.mail.MessagingException;
 import javax.persistence.EntityNotFoundException;
@@ -418,8 +420,39 @@ public class MemberService {
     AgeDistributionForShowResponseDto ageDistributionForAllMembers =
         consumerClientService.getAgeDistributionForAllMembers();
 
-    // TODO
-    return null;
+    List<Object[]> memberCountsProgress =
+        getMemberCountsByCreatedAtAndMemberRoleEnumFromAWeekAgo(MemberRoleEnum.ROLE_CONSUMER);
+
+    Map<Date, Long> consumers = new LinkedHashMap<>();
+    for (Object[] memberCounts : memberCountsProgress) {
+      Date date = (Date) memberCounts[0];
+      Long memberCount = (Long) memberCounts[1];
+      log.info("[date]: " + date);
+      log.info("[memberCount]: " + memberCount);
+      consumers.put(date, memberCount);
+    }
+
+    List<Object[]> sellerCountsProgress =
+        getMemberCountsByCreatedAtAndMemberRoleEnumFromAWeekAgo(MemberRoleEnum.ROLE_SELLER);
+
+    Map<Date, Long> sellers = new HashMap<>();
+    for (Object[] sellerCounts : sellerCountsProgress) {
+      Date date = (Date) sellerCounts[0];
+      Long sellerCount = (Long) sellerCounts[1];
+      log.info("[date]: " + date);
+      log.info("[sellerCount]: " + sellerCount);
+      sellers.put(date, sellerCount);
+    }
+    return memberMapper.toMemberInfoForAdminDto(ageDistributionForAllMembers, consumers, sellers);
+  }
+
+  private List<Object[]> getMemberCountsByCreatedAtAndMemberRoleEnumFromAWeekAgo(
+      MemberRoleEnum memberRoleEnum) {
+
+    LocalDateTime now = LocalDateTime.now();
+    LocalDateTime aWeekAgo = now.minus(1, ChronoUnit.WEEKS);
+    return memberRepository.getMemberCountsByCreatedAtAndMemberRoleEnumFromAWeekAgo(
+        aWeekAgo, memberRoleEnum);
   }
 
   public Member getMemberByUniqueKey(String email, String memberRole) {

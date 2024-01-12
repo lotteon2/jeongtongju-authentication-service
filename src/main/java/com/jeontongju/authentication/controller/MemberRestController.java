@@ -129,7 +129,6 @@ public class MemberRestController {
       for (Cookie cookie : cookies) {
         if ("refreshToken".equals(cookie.getName())) {
           String value = cookie.getValue();
-          log.info("[Find RefreshToken]: " + value);
           refreshToken = value;
           isExist = true;
           break;
@@ -139,9 +138,6 @@ public class MemberRestController {
         log.info("해당 refresh token이 쿠키에 존재하지 않습니다.");
       }
     }
-    //    refreshToken = refreshTokenRequestDto.getCookie();
-
-    log.info("[refreshToken]: " + refreshToken);
     log.info("쿠키 확인 완료");
 
     log.info("MemberController's issueAccessTokenByRefreshToken executes..");
@@ -228,7 +224,7 @@ public class MemberRestController {
             ResponseFormat.<SiteSituationForAdminManagingResponseDto>builder()
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
-                .detail("관리자, 사이트 현황 조회 성공")
+                .detail("관리자, 대시보드 헤더 현황 조회 성공")
                 .data(memberService.getSiteSituation(memberRole))
                 .build());
   }
@@ -242,7 +238,7 @@ public class MemberRestController {
             ResponseFormat.<MemberInfoForAdminManagingResponseDto>builder()
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
-                .detail("관리자, 모든 회원 현황 조회 성공")
+                .detail("관리자, 회원 연령 분포 및 지난 일주일간 가입수 조회 성공")
                 .data(memberService.getMembersResult(memberRole))
                 .build());
   }

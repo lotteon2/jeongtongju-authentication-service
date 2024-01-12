@@ -3,14 +3,20 @@ package com.jeontongju.authentication.mapper;
 import com.jeontongju.authentication.domain.Member;
 import com.jeontongju.authentication.dto.request.SellerInfoForSignUpRequestDto;
 import com.jeontongju.authentication.dto.response.ImpAuthInfo;
+import com.jeontongju.authentication.dto.response.MemberInfoForAdminManagingResponseDto;
 import com.jeontongju.authentication.dto.response.SiteSituationForAdminManagingResponseDto;
 import com.jeontongju.authentication.dto.temp.ConsumerInfoForAccountConsolidationDto;
 import com.jeontongju.authentication.dto.temp.SellerInfoForCreateRequestDto;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
+import io.github.bitbox.bitbox.dto.AgeDistributionForShowResponseDto;
 import io.github.bitbox.bitbox.dto.ConsumerInfoForCreateRequestDto;
 import io.github.bitbox.bitbox.dto.ImpAuthInfoForUpdateDto;
+
+import java.sql.Date;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.Map;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -91,6 +97,21 @@ public class MemberMapper {
         .newConsumerCnts(newConsumerCnts)
         .deletedMemberCnts(deletedMemberCnts)
         .waitingApprovalAuctionCnts(waitingApprovalAuctionCnts)
+        .build();
+  }
+
+  public MemberInfoForAdminManagingResponseDto toMemberInfoForAdminDto(
+      AgeDistributionForShowResponseDto ageDistributionForShowResponseDto,
+      Map<Date, Long> consumers,
+      Map<Date, Long> sellers) {
+
+    return MemberInfoForAdminManagingResponseDto.builder()
+        .teenage(ageDistributionForShowResponseDto.getTeenage())
+        .twenty(ageDistributionForShowResponseDto.getTwenty())
+        .thirty(ageDistributionForShowResponseDto.getThirty())
+        .fortyOver(ageDistributionForShowResponseDto.getFortyOver())
+        .consumers(consumers)
+        .sellers(sellers)
         .build();
   }
 }
