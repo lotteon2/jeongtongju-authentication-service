@@ -388,12 +388,12 @@ public class MemberService {
 
     // 신규 유저(오늘)
     List<Member> registerConsumerAtToday =
-        memberRepository.findByMemberRoleEnumAndCreatedAtAfter(
-            MemberRoleEnum.ROLE_CONSUMER, currentDateStartOfDay);
+        memberRepository.findByMemberRoleEnumAndIsDeletedAndCreatedAtAfter(
+            MemberRoleEnum.ROLE_CONSUMER, false, currentDateStartOfDay);
     // 신규 셀러(오늘, 미승인 포함)
     List<Member> registerSellerAtToday =
-        memberRepository.findByMemberRoleEnumAndCreatedAtAfter(
-            MemberRoleEnum.ROLE_SELLER, currentDateStartOfDay);
+        memberRepository.findByMemberRoleEnumAndIsDeletedAndCreatedAtAfter(
+            MemberRoleEnum.ROLE_SELLER, false, currentDateStartOfDay);
     // 탈퇴 회원(오늘)
     List<Member> deletedMemberAtToday =
         memberRepository.findByIsDeletedAndCreatedAtAfter(true, currentDateStartOfDay);

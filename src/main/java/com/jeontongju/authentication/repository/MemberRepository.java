@@ -17,8 +17,8 @@ public interface MemberRepository extends JpaRepository<Member, String> {
 
   Optional<Member> findByUsernameAndMemberRoleEnum(String email, MemberRoleEnum memberRole);
 
-  List<Member> findByMemberRoleEnumAndCreatedAtAfter(
-      MemberRoleEnum memberRole, LocalDateTime currentDate);
+  List<Member> findByMemberRoleEnumAndIsDeletedAndCreatedAtAfter(
+      MemberRoleEnum memberRole, Boolean isDeleted, LocalDateTime currentDate);
 
   List<Member> findByIsDeletedAndCreatedAtAfter(boolean isDeleted, LocalDateTime currentDate);
 
