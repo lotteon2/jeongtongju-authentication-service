@@ -8,6 +8,7 @@ import com.jeontongju.authentication.domain.Member;
 import com.jeontongju.authentication.enums.MemberRoleEnum;
 import com.jeontongju.authentication.enums.SnsTypeEnum;
 import com.jeontongju.authentication.exception.MemberNotFoundException;
+import com.jeontongju.authentication.kafka.MemberKafkaProducer;
 import com.jeontongju.authentication.mapper.MemberMapper;
 import com.jeontongju.authentication.mapper.SnsAccountMapper;
 import com.jeontongju.authentication.repository.MemberRepository;
@@ -36,6 +37,7 @@ public class MemberOAuth2UserService extends DefaultOAuth2UserService {
   private final MemberRepository memberRepository;
   private final SnsAccountRepository snsAccountRepository;
   private final ConsumerClientService consumerClientService;
+  private final MemberKafkaProducer memberKafkaProducer;
 
   @Override
   public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -134,6 +136,7 @@ public class MemberOAuth2UserService extends DefaultOAuth2UserService {
         snsAccountMapper.toEntity(
             snsTypeEnum.name() + "_" + snsUniqueId, snsTypeEnum.name(), savedMember));
 
+    memberKafkaProducer.send("issue-welcome-coupon", savedMember.getMemberId());
     consumerClientService.createConsumerForSignupBySns(
         ConsumerInfoForCreateBySnsRequestDto.toDto(
             savedMember.getMemberId(), savedMember.getUsername(), profileImageUrl));
