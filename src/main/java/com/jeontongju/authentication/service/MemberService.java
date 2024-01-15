@@ -265,9 +265,9 @@ public class MemberService {
   @Transactional
   public JwtTokenResponse renewAccessTokenByRefreshToken(String refreshToken) {
 
-    log.info("[MemberService's renewAccessTokenByRefreshToken executes]..");
+    log.info("[MemberService's renewAccessTokenByRefreshToken executes]");
     try {
-      log.info("[redisTemplate starts]..");
+      log.info("[redisTemplate starts]");
       ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();
 
       byte[] keyBytes = Decoders.BASE64.decode(secret);
@@ -281,7 +281,7 @@ public class MemberService {
               .findByMemberId(Long.parseLong(memberId))
               .orElseThrow(() -> new MemberNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
       String refreshKey = member.getMemberRoleEnum().name() + "_" + member.getUsername();
-      log.info("[redisTemplate.opsForValue get..]");
+      log.info("[redisTemplate.opsForValue get]");
       String refreshTokenInRedis = stringStringValueOperations.get(refreshKey);
       log.info("[redisTemplate Successful end]!");
 
@@ -289,8 +289,8 @@ public class MemberService {
       if (!refreshToken.equals(refreshTokenInRedis)) {
         // 다르면 탈취된 것으로 판단
         log.info("[refreshToken is different in redis]!!");
-        log.info("[delete refresh key & value in redis]..");
         redisTemplate.delete(refreshKey);
+        log.info("[delete refresh key & value in redis]");
         throw new MalformedRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN);
       }
 
@@ -299,10 +299,10 @@ public class MemberService {
       String renewedRefreshToken = jwtTokenProvider.createRefreshToken(Long.parseLong(memberId));
       stringStringValueOperations.set(refreshKey, renewedRefreshToken);
 
-      log.info("access token & refresh token renewed.");
+      log.info("[Access token & Refresh token renewed]");
       return JwtTokenResponse.builder()
           .accessToken("Bearer " + renewedAccessToken)
-          .refreshToken(renewedRefreshToken)
+          .refreshToken("Bearer " + renewedRefreshToken)
           .build();
 
     } catch (ExpiredJwtException e) {
