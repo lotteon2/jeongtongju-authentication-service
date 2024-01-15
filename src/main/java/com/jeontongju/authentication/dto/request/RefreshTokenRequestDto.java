@@ -11,5 +11,5 @@ import lombok.NoArgsConstructor;
 @Getter
 public class RefreshTokenRequestDto {
 
-  private String cookie;
+  private String refreshToken;
 }

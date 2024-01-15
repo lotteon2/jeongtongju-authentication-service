@@ -114,45 +114,45 @@ public class MemberRestController {
   }
 
   @PutMapping("/access-token")
-  public ResponseEntity<ResponseFormat<String>> issueAccessTokenByRefreshToken(
-      HttpServletRequest request,
-      HttpServletResponse response,
+  public ResponseEntity<ResponseFormat<JwtTokenResponse>> issueAccessTokenByRefreshToken(
+//      HttpServletRequest request,
+//      HttpServletResponse response,
       @RequestBody RefreshTokenRequestDto refreshTokenRequestDto) {
 
-    Cookie[] cookies = request.getCookies();
+//    Cookie[] cookies = request.getCookies();
+//
+//    String refreshToken = null;
+//    if (cookies == null) {
+//      log.info("쿠키가 없습니다.");
+//    } else {
+//      boolean isExist = false;
+//      for (Cookie cookie : cookies) {
+//        if ("refreshToken".equals(cookie.getName())) {
+//          String value = cookie.getValue();
+//          refreshToken = value;
+//          isExist = true;
+//          break;
+//        }
+//      }
+//      if (!isExist) {
+//        log.info("해당 refresh token이 쿠키에 존재하지 않습니다.");
+//      }
+//    }
+//    log.info("쿠키 확인 완료");
 
-    String refreshToken = null;
-    if (cookies == null) {
-      log.info("쿠키가 없습니다.");
-    } else {
-      boolean isExist = false;
-      for (Cookie cookie : cookies) {
-        if ("refreshToken".equals(cookie.getName())) {
-          String value = cookie.getValue();
-          refreshToken = value;
-          isExist = true;
-          break;
-        }
-      }
-      if (!isExist) {
-        log.info("해당 refresh token이 쿠키에 존재하지 않습니다.");
-      }
-    }
-    log.info("쿠키 확인 완료");
+    log.info("[MemberController's issueAccessTokenByRefreshToken executes]");
+    JwtTokenResponse jwtTokenResponse = memberService.renewAccessTokenByRefreshToken(refreshTokenRequestDto.getRefreshToken());
 
-    log.info("MemberController's issueAccessTokenByRefreshToken executes..");
-    JwtTokenResponse jwtTokenResponse = memberService.renewAccessTokenByRefreshToken(refreshToken);
-
-    log.info("MemberController's issueAccessTokenByRefreshToken Successful executed!");
-    Cookie cookie = new Cookie("refreshToken", jwtTokenResponse.getRefreshToken());
-    response.addCookie(cookie);
+    log.info("[MemberController's issueAccessTokenByRefreshToken Successful executed]!!");
+//    Cookie cookie = new Cookie("refreshToken", jwtTokenResponse.getRefreshToken());
+//    response.addCookie(cookie);
     return ResponseEntity.ok()
         .body(
-            ResponseFormat.<String>builder()
+            ResponseFormat.<JwtTokenResponse>builder()
                 .code(HttpStatus.OK.value())
                 .message(HttpStatus.OK.name())
                 .detail("Access-Token 재발급 성공")
-                .data(jwtTokenResponse.getAccessToken())
+                .data(jwtTokenResponse)
                 .build());
   }
 
