@@ -44,4 +44,9 @@ public class ConsumerClientService {
 
     return consumerServiceClient.getAgeDistributionForAllMembers().getData();
   }
+
+  public void delete(Long memberId) {
+
+    consumerServiceClient.delete(memberId);
+  }
 }

@@ -6,6 +6,7 @@ import io.github.bitbox.bitbox.dto.ConsumerInfoForCreateRequestDto;
 import io.github.bitbox.bitbox.dto.ImpAuthInfoForUpdateDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 
@@ -28,4 +29,7 @@ public interface ConsumerServiceClient {
 
   @GetMapping("/consumers/age-distribution")
   FeignFormat<AgeDistributionForShowResponseDto> getAgeDistributionForAllMembers();
+
+  @PutMapping("/consumers/{consumerId}/withdrawal")
+  FeignFormat<Void> delete(@PathVariable Long consumerId);
 }
