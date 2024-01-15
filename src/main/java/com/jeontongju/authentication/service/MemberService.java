@@ -273,6 +273,7 @@ public class MemberService {
       byte[] keyBytes = Decoders.BASE64.decode(secret);
       SecretKey key = Keys.hmacShaKeyFor(keyBytes);
 
+      refreshToken = refreshToken.replace("Bearer ", "");
       Claims claims = checkValid(refreshToken, key);
       String memberId = claims.get("memberId", String.class);
       log.info("[memberId]: " + memberId);
