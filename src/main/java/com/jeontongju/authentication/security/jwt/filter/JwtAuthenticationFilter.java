@@ -106,17 +106,17 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
     String jwtRefreshToken =
         jwtTokenProvider.createRefreshToken(memberDetails.getMember().getMemberId());
 
-    ResponseCookie cookie =
-        ResponseCookie.from("refreshToken", jwtRefreshToken)
-            .domain(".jeontongju-dev.shop")
-            .path("/")
-            .sameSite("None")
-            .httpOnly(true)
-            .secure(true)
-            .maxAge(21600000)
-            .build();
+    //    ResponseCookie cookie =
+    //        ResponseCookie.from("refreshToken", jwtRefreshToken)
+    //            .domain(".jeontongju-dev.shop")
+    //            .path("/")
+    //            .sameSite("None")
+    //            .httpOnly(true)
+    //            .secure(true)
+    //            .maxAge(21600000)
+    //            .build();
 
-    response.addHeader("Set-Cookie", cookie.toString());
+    //    response.addHeader("Set-Cookie", cookie.toString());
 
     response.addHeader("Authorization", "Bearer " + jwtToken);
 
@@ -124,7 +124,10 @@ public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFil
     response.setCharacterEncoding("UTF-8");
 
     JwtAccessTokenResponse jwtAccessTokenResponse =
-        JwtAccessTokenResponse.builder().accessToken("Bearer " + jwtToken).build();
+        JwtAccessTokenResponse.builder()
+            .accessToken("Bearer " + jwtToken)
+            .refreshToken("Bearer " + jwtRefreshToken)
+            .build();
 
     String memberRole = memberDetails.getMember().getMemberRoleEnum().name();
     String refreshKey =
