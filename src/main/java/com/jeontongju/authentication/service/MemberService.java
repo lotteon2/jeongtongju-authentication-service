@@ -349,6 +349,7 @@ public class MemberService {
   public void withdraw(Long memberId) {
 
     Member foundMember = getMember(memberId);
+    consumerClientService.delete(memberId);
     foundMember.delete();
   }
 
