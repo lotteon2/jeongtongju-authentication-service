@@ -10,4 +10,5 @@ import lombok.Getter;
 public class JwtAccessTokenResponse {
 
   private String accessToken;
+  private String refreshToken;
 }
