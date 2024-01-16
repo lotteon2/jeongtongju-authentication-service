@@ -62,7 +62,7 @@ public class JwtTokenProvider implements InitializingBean {
     Date validity = new Date(now + this.tokenValidityInMilliseconds);
     return Jwts.builder()
         .setSubject(member.getUsername())
-        .claim("memberId", member.getMemberId())
+        .claim("memberId", member.getMemberId().toString())
         .claim("memberRole", member.getMemberRoleEnum().name())
         .claim("username", member.getUsername())
         .signWith(key, SignatureAlgorithm.HS512)
