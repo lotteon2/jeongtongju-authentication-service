@@ -66,7 +66,7 @@ public class MemberService {
   private String secret;
 
   /**
-   * 비밀번호 찾기 시, 인증을 위한 이메일 전송
+   * 비밀번호 분실 시, 새 비밀번호 발급 인증을 위한 이메일 전송
    *
    * @param authRequestDto 이메일 + 역할 정보(UNIQUE)
    * @return {MailAuthCodeResponseDto} 이메일로 전송된 유효코드(8자)
@@ -85,12 +85,12 @@ public class MemberService {
         .findByUsernameAndMemberRoleEnum(authRequestDto.getEmail(), memberRoleEnum)
         .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
     MailInfoDto mailInfoDto =
-        MailManager.sendAuthEmail(authRequestDto.getEmail(), "비밀번호 찾기 인증 유효코드입니다.");
+        MailManager.sendAuthEmail(authRequestDto.getEmail(), "[전통주.] 비밀번호 찾기, 인증 유효 코드 발송", "비밀번호 찾기 인증 유효코드입니다.");
     return MailAuthCodeResponseDto.builder().authCode(mailInfoDto.getValidCode()).build();
   }
 
   /**
-   * 비밀번호 찾기 시, 변경 처리
+   * 비밀번호 찾기 시, 단순 변경 처리
    *
    * @param changeRequestDto 비밀번호 변경을 위해 필요한 정보 (UNIQUE KEY + 새로운 비밀번호)
    */
@@ -162,7 +162,7 @@ public class MemberService {
     }
 
     MailInfoDto mailInfoDto =
-        MailManager.sendAuthEmail(authRequestDto.getEmail(), "회원가입 인증 유효코드입니다.");
+        MailManager.sendAuthEmail(authRequestDto.getEmail(), "[전통주.] 회원가입 유효코드 발송", "회원가입 인증 유효코드입니다.");
 
     return MailAuthCodeResponseDto.builder()
         .authCode(mailInfoDto.getValidCode())
@@ -276,7 +276,7 @@ public class MemberService {
       refreshToken = refreshToken.replace("Bearer ", "");
       Claims claims = checkValid(refreshToken, key);
       String memberId = claims.get("memberId", String.class);
-      log.info("[memberId]: " + memberId);
+
       Member member =
           memberRepository
               .findByMemberId(Long.parseLong(memberId))
