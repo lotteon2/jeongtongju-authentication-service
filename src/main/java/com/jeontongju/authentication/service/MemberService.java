@@ -355,6 +355,17 @@ public class MemberService {
   }
 
   /**
+   * 회원 탈퇴 처리(셀러)
+   *
+   * @param sellerId 탈퇴 처리할 회원(셀러) 식별자
+   */
+  public void deleteSeller(Long sellerId) {
+
+    Member foundMember = getMember(sellerId);
+    foundMember.delete();
+  }
+
+  /**
    * 최초 소셜 로그인 후, 성인인증 처리
    *
    * @param memberId 로그인 한 회원 식별자
