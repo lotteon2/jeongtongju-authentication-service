@@ -40,10 +40,9 @@ public class MailManager {
   }
 
   // 이메일 폼 생성
-  private static MailInfoDto createEmailForm(String to, String text)
+  private static MailInfoDto createEmailForm(String to, String title, String text)
       throws MessagingException, UnsupportedEncodingException {
 
-    String title = "전통주점 회원가입 유효코드 발송";
     String authNum = createValidCode();
     MimeMessage message = mailSender.createMimeMessage();
     message.addRecipients(RecipientType.TO, to);
@@ -54,9 +53,10 @@ public class MailManager {
   }
 
   // 이메일 보내기
-  public static MailInfoDto sendAuthEmail(String email, String text)
+  public static MailInfoDto sendAuthEmail(String email, String title, String text)
       throws MessagingException, UnsupportedEncodingException {
-    MailInfoDto mailInfo = createEmailForm(email, text);
+
+    MailInfoDto mailInfo = createEmailForm(email, title, text);
     MimeMessage emailForm = mailInfo.getMimeMessage();
     mailSender.send(emailForm);
     return mailInfo;
