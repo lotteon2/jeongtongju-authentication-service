@@ -307,13 +307,13 @@ public class MemberService {
           .build();
 
     } catch (ExpiredJwtException e) {
-      log.info("refresh token expired.");
+      log.error("refresh token expired.");
       throw new ExpiredRefreshTokenException(CustomErrMessage.EXPIRED_REFRESH_TOKEN);
     } catch (IllegalArgumentException | SignatureException | MalformedJwtException e) {
-      log.info("wrong refresh token.");
+      log.error("wrong refresh token.");
       throw new NotValidRefreshTokenException(CustomErrMessage.MALFORMED_REFRESH_TOKEN);
     } catch (Exception e) {
-      log.info("unforeseen error!!");
+      log.error("unforeseen error!!={}", e.getMessage());
       throw new UnforeseenException(CustomErrMessage.UNFORESEEM_ERROR);
     }
   }
