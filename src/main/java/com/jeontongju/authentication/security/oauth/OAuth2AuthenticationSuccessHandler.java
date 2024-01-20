@@ -53,15 +53,16 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
     ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();
     stringStringValueOperations.set(refreshKey, refreshToken);
 
-    Cookie cookie = new Cookie("refreshToken", refreshToken);
-    cookie.setMaxAge(21600000);
-    cookie.setHttpOnly(true);
-    cookie.setPath("/");
-    response.addCookie(cookie);
+    //    Cookie cookie = new Cookie("refreshToken", refreshToken);
+    //    cookie.setMaxAge(21600000);
+    //    cookie.setHttpOnly(true);
+    //    cookie.setPath("/");
+    //    response.addCookie(cookie);
 
     response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
 
-    response.sendRedirect("https://jeontongju.shop/init/callback?code=" + accessToken);
+    response.sendRedirect(
+        "https://jeontongju.shop/init/callback?code=" + accessToken + "&refresh=" + refreshToken);
   }
 }
