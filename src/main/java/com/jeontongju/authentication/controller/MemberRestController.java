@@ -81,6 +81,21 @@ public class MemberRestController {
                 .build());
   }
 
+  @PostMapping("/adult-approve")
+  public ResponseEntity<ResponseFormat<Boolean>> getAdultProof(
+      @RequestBody ImpUidForAdultCertificationRequestDto impUidDto)
+      throws JSONException, IOException {
+
+    return ResponseEntity.ok()
+        .body(
+            ResponseFormat.<Boolean>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("주문 전 성인인증 성공")
+                .data(memberService.getAdultProof(impUidDto))
+                .build());
+  }
+
   @PostMapping("/sellers/sign-up")
   public ResponseEntity<ResponseFormat<Void>> signupForSeller(
       @Valid @RequestBody SellerInfoForSignUpRequestDto signUpRequestDto)
@@ -115,37 +130,38 @@ public class MemberRestController {
 
   @PutMapping("/access-token")
   public ResponseEntity<ResponseFormat<JwtTokenResponse>> issueAccessTokenByRefreshToken(
-//      HttpServletRequest request,
-//      HttpServletResponse response,
+      //      HttpServletRequest request,
+      //      HttpServletResponse response,
       @RequestBody RefreshTokenRequestDto refreshTokenRequestDto) {
 
-//    Cookie[] cookies = request.getCookies();
-//
-//    String refreshToken = null;
-//    if (cookies == null) {
-//      log.info("쿠키가 없습니다.");
-//    } else {
-//      boolean isExist = false;
-//      for (Cookie cookie : cookies) {
-//        if ("refreshToken".equals(cookie.getName())) {
-//          String value = cookie.getValue();
-//          refreshToken = value;
-//          isExist = true;
-//          break;
-//        }
-//      }
-//      if (!isExist) {
-//        log.info("해당 refresh token이 쿠키에 존재하지 않습니다.");
-//      }
-//    }
-//    log.info("쿠키 확인 완료");
+    //    Cookie[] cookies = request.getCookies();
+    //
+    //    String refreshToken = null;
+    //    if (cookies == null) {
+    //      log.info("쿠키가 없습니다.");
+    //    } else {
+    //      boolean isExist = false;
+    //      for (Cookie cookie : cookies) {
+    //        if ("refreshToken".equals(cookie.getName())) {
+    //          String value = cookie.getValue();
+    //          refreshToken = value;
+    //          isExist = true;
+    //          break;
+    //        }
+    //      }
+    //      if (!isExist) {
+    //        log.info("해당 refresh token이 쿠키에 존재하지 않습니다.");
+    //      }
+    //    }
+    //    log.info("쿠키 확인 완료");
 
     log.info("[MemberController's issueAccessTokenByRefreshToken executes]");
-    JwtTokenResponse jwtTokenResponse = memberService.renewAccessTokenByRefreshToken(refreshTokenRequestDto.getRefreshToken());
+    JwtTokenResponse jwtTokenResponse =
+        memberService.renewAccessTokenByRefreshToken(refreshTokenRequestDto.getRefreshToken());
 
     log.info("[MemberController's issueAccessTokenByRefreshToken Successful executed]!!");
-//    Cookie cookie = new Cookie("refreshToken", jwtTokenResponse.getRefreshToken());
-//    response.addCookie(cookie);
+    //    Cookie cookie = new Cookie("refreshToken", jwtTokenResponse.getRefreshToken());
+    //    response.addCookie(cookie);
     return ResponseEntity.ok()
         .body(
             ResponseFormat.<JwtTokenResponse>builder()

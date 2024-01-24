@@ -68,7 +68,7 @@ public class Auth19Manager {
     return impAuthResponse.getResponse();
   }
 
-  private Boolean isAdult(String birthday) {
+  public Boolean isAdult(String birthday) {
     LocalDate birthDate =
         LocalDate.of(
             Integer.parseInt(birthday.substring(0, 4)),
