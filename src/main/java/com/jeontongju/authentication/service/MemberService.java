@@ -85,7 +85,8 @@ public class MemberService {
         .findByUsernameAndMemberRoleEnum(authRequestDto.getEmail(), memberRoleEnum)
         .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_MEMBER));
     MailInfoDto mailInfoDto =
-        MailManager.sendAuthEmail(authRequestDto.getEmail(), "[전통주.] 비밀번호 찾기, 인증 유효 코드 발송", "비밀번호 찾기 인증 유효코드입니다.");
+        MailManager.sendAuthEmail(
+            authRequestDto.getEmail(), "[전통주.] 비밀번호 찾기, 인증 유효 코드 발송", "비밀번호 찾기 인증 유효코드입니다.");
     return MailAuthCodeResponseDto.builder().authCode(mailInfoDto.getValidCode()).build();
   }
 
@@ -162,7 +163,8 @@ public class MemberService {
     }
 
     MailInfoDto mailInfoDto =
-        MailManager.sendAuthEmail(authRequestDto.getEmail(), "[전통주.] 회원가입 유효코드 발송", "회원가입 인증 유효코드입니다.");
+        MailManager.sendAuthEmail(
+            authRequestDto.getEmail(), "[전통주.] 회원가입 유효코드 발송", "회원가입 인증 유효코드입니다.");
 
     return MailAuthCodeResponseDto.builder()
         .authCode(mailInfoDto.getValidCode())
@@ -378,6 +380,13 @@ public class MemberService {
         auth19Manager.authenticate19(adultCertificationRequestDto.getImpUid());
     consumerClientService.updateConsumerByAuth19(
         memberMapper.toImpAuthInfoDto(memberId, impAuthInfo));
+  }
+
+  public Boolean getAdultProof(ImpUidForAdultCertificationRequestDto impUidDto)
+      throws JSONException, IOException {
+
+    ImpAuthInfo impAuthInfo = auth19Manager.authenticate19(impUidDto.getImpUid());
+    return auth19Manager.isAdult(impAuthInfo.getBirthday());
   }
 
   /**
